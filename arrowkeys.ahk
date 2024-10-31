@@ -10,4 +10,4 @@ CapsLock::Alt
 !u::Send("{Home}")
 !o::Send("{End}")
 !h::Send("^{Left}")
-!;::Send("^{Right}")
+!`;::Send("^{Right}")
