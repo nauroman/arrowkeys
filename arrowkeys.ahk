@@ -1,10 +1,15 @@
-﻿!j::Send {Left}
-!k::Send {Down}
-!i::Send {Up}
-!l::Send {Right}
-!u::Send {Home}
-!o::Send {End}
-!y::Send {PgUp}
-!h::Send {PgDn}
+#Requires AutoHotkey v2.0
+#SingleInstance Force
 
-CapsLock::LAlt 
+CapsLock::Alt
+
+!j::Send("{Left}")
+!l::Send("{Right}")
+!i::Send("{Up}")
+!k::Send("{Down}")
+!u::Send("{Home}")
+!o::Send("{End}")
+!y::Send("{PgUp}")
+!p::Send("{PgDn}")
+!h::Send("^{Left}")
+!;::Send("^{Right}")
