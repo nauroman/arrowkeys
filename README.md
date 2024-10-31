@@ -8,7 +8,7 @@ This repository contains an AutoHotkey script to remap certain keys to arrow key
 
 ## Installation
 
-1. Download and install [AutoHotkey](https://www.autohotkey.com/)
+1. Download and install [AutoHotkey v2.0](https://www.autohotkey.com/)
 2. Save the script as `arrowkeys.ahk`.
 3. Run the script by double-clicking the `arrowkeys.ahk` file.
 
