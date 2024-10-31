@@ -23,8 +23,6 @@ The script remaps the following keys when used with the `Alt` key:
 - `CapsLock + k` to `Down Arrow`
 - `CapsLock + u` to `Home`
 - `CapsLock + o` to `End`
-- `CapsLock + y` to `Page Up`
-- `CapsLock + p` to `Page Down`
 - `CapsLock + h` to `Ctrl + Left Arrow`
 - `CapsLock + ;` to `Ctrl + Right Arrow`
 
