@@ -9,7 +9,5 @@ CapsLock::Alt
 !k::Send("{Down}")
 !u::Send("{Home}")
 !o::Send("{End}")
-!y::Send("{PgUp}")
-!p::Send("{PgDn}")
 !h::Send("^{Left}")
 !;::Send("^{Right}")
