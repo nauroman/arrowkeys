@@ -2,7 +2,7 @@
 
 This repository contains an AutoHotkey script to remap certain keys to arrow keys and other navigation keys for improved productivity.
 
-![Project Screenshot](keyboard.jpg) 
+![Project Screenshot](keyboard.png) 
 
 ## Requirements
 
