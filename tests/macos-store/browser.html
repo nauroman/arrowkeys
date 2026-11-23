@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>ArrowKeys · Safari check</title>
+<style>
+:root { color-scheme:light dark; font: 16px system-ui } body { max-width: 46rem; margin: 3rem auto; padding: 0 1rem }
+h1 { font-size:1.5rem } textarea { box-sizing:border-box; width:100%; height:8rem; font:18px monospace; padding:.6rem }
+output { display:block; margin:1rem 0 } button { padding:.45rem 1rem } li { margin:.2rem 0 }
+</style>
+<h1>Check navigation in Safari</h1>
+<p>For each direction, press the ordinary arrow combination first, then the shortcut on your physical Caps Lock key. Keep the text box focused.</p>
+<button id="start">Start check</button>
+<output id="prompt" role="status"></output>
+<textarea id="sample" wrap="off" spellcheck="false" autocomplete="off" aria-label="Test text"></textarea>
+<ol id="results"></ol><button id="save" hidden>Save results</button>
+<script>
+const cases = [
+  ['J', '←'], ['K', '↓'], ['L', '→'], ['I', '↑'],
+  ['U', 'Command + ←'], ['O', 'Command + →'], ['H', 'Option + ←'], [';', 'Option + →']
+];
+const fixture = 'alpha bravo charlie delta\nalpha bravo charlie delta\nalpha bravo charlie delta';
+const sample = document.querySelector('#sample'), prompt = document.querySelector('#prompt');
+const run = new URLSearchParams(location.search).get('run') || 'manual';
+let index = 0, reference, phase = 'idle', pending = false, observations = [];
+function arm(forReference) {
+  phase = forReference ? 'reference' : 'shortcut';
+  sample.value = fixture;
+  sample.focus();
+  sample.setSelectionRange(35, 35);
+  prompt.textContent = 'Press ' + (forReference ? cases[index][1] : 'Caps Lock + ' + cases[index][0]);
+}
+document.querySelector('#start').onclick = () => {
+  index = 0; pending = false; observations = [];
+  document.querySelector('#results').replaceChildren();
+  document.querySelector('#save').hidden = true;
+  arm(true);
+};
+sample.addEventListener('keydown', event => {
+  if (phase === 'idle' || pending || event.repeat || !event.isTrusted ||
+      ['Alt','Meta','CapsLock','Control','Shift','Fn'].includes(event.key)) return;
+  pending = true;
+  const current = index, priorPhase = phase;
+  setTimeout(() => {
+    pending = false;
+    if (current !== index || priorPhase !== phase) return;
+    const position = sample.selectionStart;
+    const moved = sample.value === fixture && position === sample.selectionEnd && position !== 35;
+    const expectedKeys = ['ArrowLeft','ArrowDown','ArrowRight','ArrowUp','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight'];
+    const correct = event.key === expectedKeys[index] && event.metaKey === (index === 4 || index === 5) &&
+      event.altKey === (index === 6 || index === 7) && !event.shiftKey && !event.ctrlKey;
+    if (phase === 'reference') {
+      if (!moved || !correct) { arm(true); prompt.textContent += ' (retry the ordinary arrow)'; return; }
+      reference = position; arm(false); return;
+    }
+    const pass = moved && correct && position === reference;
+    observations.push({key:cases[index][0], reference, position, pass});
+    const result = document.createElement('li');
+    result.textContent = cases[index][0] + ' — ' + (pass ? 'PASS' : 'FAIL') + ' (reference ' + reference + ', observed ' + position + ')';
+    document.querySelector('#results').append(result);
+    if (++index < cases.length) return arm(true);
+    phase = 'idle';
+    prompt.textContent = observations.filter(x => x.pass).length + '/8 passed. Save the results to Downloads.';
+    document.querySelector('#save').hidden = false;
+  }, 0);
+});
+document.querySelector('#save').onclick = () => {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob([JSON.stringify({run, observations})], {type:'application/json'}));
+  link.download = 'ArrowKeys-Safari-' + run + '.json';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+};
+</script></html>

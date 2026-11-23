@@ -6,6 +6,8 @@ The native menu bar app uses Accessibility permission to recognize the navigatio
 
 The app stores a local preference after setting up Open at Login. This lets you turn automatic startup off without ArrowKeys enabling it again on the next launch.
 
+The Mac App Store candidate registers eight shortcuts with macOS. With your consent, it sends the corresponding arrows to the foreground app. It stores the previous modifier assignments in its own local preferences until it restores them. This allows the app to recover them when reopened after an interrupted session. The candidate works offline.
+
 ## Windows
 
 ArrowKeys processes keyboard input on your PC to turn its shortcuts into cursor movements. The app does not record what you type, collect personal information, send telemetry, display ads or use the network. Text entered in the shortcut guide is held in memory and disappears when the app exits.

@@ -5,23 +5,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-typedef struct { CGKeyCode input, arrow; CGEventFlags modifier; } Binding;
-static const Binding bindings[] = {
-    {kVK_ANSI_J, kVK_LeftArrow, 0}, {kVK_ANSI_K, kVK_DownArrow, 0},
-    {kVK_ANSI_L, kVK_RightArrow, 0}, {kVK_ANSI_I, kVK_UpArrow, 0},
-    {kVK_ANSI_U, kVK_LeftArrow, kCGEventFlagMaskCommand},
-    {kVK_ANSI_O, kVK_RightArrow, kCGEventFlagMaskCommand},
-    {kVK_ANSI_H, kVK_LeftArrow, kCGEventFlagMaskAlternate},
-    {kVK_ANSI_Semicolon, kVK_RightArrow, kCGEventFlagMaskAlternate}
-};
-static bool held[sizeof(bindings) / sizeof(bindings[0])];
+#import "Navigation.h"
+static bool held[bindingCount];
 static CFMachPortRef tap;
-
-static NSImage *menuBarIcon(void) {
-    NSImage *icon = [NSImage imageNamed:@"ArrowKeysMenuTemplate.svg"];
-    icon.template = YES;
-    return icon;
-}
 
 static NSString *const loginSetupKey = @"OpenAtLoginConfigured";
 
@@ -56,13 +42,7 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
             held[i] = (flags & modifiers) == kCGEventFlagMaskAlternate;
         if (!held[i]) break;
         if (type == kCGEventKeyUp) held[i] = false;
-        CGEventSetIntegerValueField(event, kCGKeyboardEventKeycode, bindings[i].arrow);
-        // Clear device-dependent Option bits too. Arrow key events carry the keypad flag.
-        CGEventSetFlags(event, (flags & kCGEventFlagMaskAlphaShift) |
-                        bindings[i].modifier | kCGEventFlagMaskNumericPad | kCGEventFlagMaskSecondaryFn);
-        const UniChar arrowCharacters[] = {NSLeftArrowFunctionKey, NSRightArrowFunctionKey,
-                                           NSDownArrowFunctionKey, NSUpArrowFunctionKey};
-        CGEventKeyboardSetUnicodeString(event, 1, &arrowCharacters[bindings[i].arrow - kVK_LeftArrow]);
+        setNavigationArrow(event, bindings[i], flags);
         break;
     }
     return event;
@@ -116,7 +96,9 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         self.status.title = @"Keyboard connection unavailable — retrying";
         return;
     }
-    self.status.title = [self.keyboards refresh] ? @"Navigation active" : @"Could not configure a keyboard";
+    BOOL configured = [self.keyboards refresh];
+    if (!configured) [self.keyboards restore];
+    self.status.title = configured ? @"Navigation active" : @"Could not configure a keyboard";
 }
 - (void)applicationWillTerminate:(NSNotification *)notification {
     if (self.bundleWatcher) dispatch_source_cancel(self.bundleWatcher);

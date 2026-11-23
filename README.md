@@ -39,6 +39,12 @@ To uninstall, move **ArrowKeys.app** from Applications to Trash. If Finder asks 
 
 If you manually assigned Caps Lock to Option for an older version, choose **Caps Lock** for that key in **System Settings → Keyboard → Keyboard Shortcuts… → Modifier Keys**.
 
+### Mac App Store candidate
+
+The separate **ArrowKeys Store.app** build targets macOS 15.2 and later. It registers the eight shortcuts with macOS. Quit the GitHub edition before opening the candidate. Choose **Enable Navigation** on first launch and grant cursor control when macOS prompts. **Open at Login** is selected in that dialog and can be changed in the menu. The app applies the Caps Lock assignment once the shortcuts and permission are available.
+
+The candidate is available as a development build. The MacBook check compares physical Caps Lock chords with ordinary arrows in TextEdit, Safari and a code editor. It also checks uppercase typing after moving the test copy to Trash. [Build and test the candidate](packaging/mac-app-store/README.md)
+
 ### Verify a download
 
 The [release workflow](.github/workflows/build.yml) builds the installers from the tagged source, checks installation on Windows and macOS, and scans the release downloads with ClamAV. Each release links to its scan log and includes **SHA256SUMS.txt**. A clean scan means that the scanner found no known threats in those files at the time of the scan.
