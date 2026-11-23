@@ -2,11 +2,41 @@
 
 **Move through text without reaching for the arrow keys.** Hold **Caps Lock** and use **J K L I** to move left, down, right and up. Jump by word or go to the start and end of a line with the nearby keys.
 
-A small [AutoHotkey v2](https://www.autohotkey.com/) script for Windows: one file, eight navigation shortcuts, and your existing arrow keys still available.
+A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a [Karabiner-Elements](https://karabiner-elements.pqrs.org/) rule on macOS implement the same eight movements.
 
 ![Keyboard layout highlighting Caps Lock and the J, K, L, I navigation keys](keyboard.png)
 
-## Try it in a minute
+## Install
+
+| Platform | Download | What to do |
+| --- | --- | --- |
+| Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey and starts ArrowKeys for your account. The sign-in shortcut is optional. |
+| macOS 13 or newer | [ArrowKeys-macOS.zip](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.zip) | Open the ZIP and double-click **Install ArrowKeys.command**. It installs Karabiner-Elements if needed and enables ArrowKeys in your selected profile. |
+
+On a fresh Mac, approve the administrator prompt for the official Karabiner package and complete its **Settings** permission prompts. Karabiner needs access to keyboard events and a virtual keyboard to send the remapped keys. These approvals require your interaction. [Karabiner setup guide](https://karabiner-elements.pqrs.org/docs/manual/misc/required-macos-settings/)
+
+Open a text editor and hold **Caps Lock**. **J/K/L/I** move left/down/right/up, **U/O** go to the beginning/end of a line, and **H/;** move by word. Release Caps Lock to resume typing.
+
+### On a Mac
+
+Caps Lock acts as **Option**, and either physical Option key also activates the shortcuts. **U/O** send **Command + Left/Right** and **H/;** send **Option + Left/Right**. The rule uses physical key positions, including the U.S. semicolon position immediately to the right of L. Holding a third modifier such as Shift leaves that chord to the app. A mapped Option chord takes precedence over typing its usual special character.
+
+The installer keeps other profiles and rules, and backs up an existing profile file before editing it. If the profile uses comments, a symbolic link or another unsupported format, the installer makes the rule available under **Karabiner-Elements → Complex Modifications → Add predefined rule → ArrowKeys → Enable**. To turn ArrowKeys off, remove its rule under **Complex Modifications**. [View the complete Mac rule](macos/arrowkeys.json)
+
+### Verify a download
+
+The [release workflow](.github/workflows/build.yml) builds the installers from the tagged source, checks installation on Windows and macOS, and scans the release downloads with ClamAV. Each release links to its scan log and includes **SHA256SUMS.txt**. A clean scan means that the scanner found no known threats in those files at the time of the scan.
+
+You can verify the exact downloaded bytes against GitHub's signed build record with the [GitHub CLI](https://cli.github.com/). Run the command for your download:
+
+```shell
+gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
+gh attestation verify ArrowKeys-macOS.zip --repo nauroman/arrowkeys
+```
+
+ArrowKeys' Windows installer has no publisher signature, and its Mac launcher has no Apple notarization. The Mac launcher checks the pinned SHA-256 and asks Gatekeeper to verify the official Karabiner installer before requesting administrator privileges. The [Windows hotkeys](arrowkeys.ahk) and [macOS rule](macos/arrowkeys.json) are available for inspection. [Release files and scan results](https://github.com/nauroman/arrowkeys/releases/latest)
+
+### Windows setup from source
 
 1. Install [AutoHotkey v2](https://www.autohotkey.com/).
 2. Choose **Code → Download ZIP** in this repository and extract it to a permanent folder.
@@ -15,7 +45,7 @@ A small [AutoHotkey v2](https://www.autohotkey.com/) script for Windows: one fil
 
 **Requirements:** Windows and **AutoHotkey v2.0 or a later v2 release**, as specified by `#Requires AutoHotkey v2.0`. AutoHotkey v1 is incompatible. The current script was tested with **AutoHotkey v2.0.18**.
 
-## The keys
+## Windows key reference
 
 Hold **Caps Lock** while pressing a key below. Holding a navigation key repeats its action.
 
@@ -40,7 +70,7 @@ The navigation shortcuts are defined as **Alt + key**, so the physical Alt key a
 
 Extra Ctrl or Shift modifiers change which hotkey matches; additional selection shortcuts are not defined. Letter and punctuation bindings depend on the keyboard layout. For example, on a Russian layout, `;` may require **Shift + 4**.
 
-## Keep it running at sign-in
+## Windows sign-in for a source install
 
 1. Create a shortcut to `arrowkeys.ahk` in its permanent folder.
 2. Press **Win + R**, enter `shell:startup`, and press **Enter**.
@@ -49,6 +79,8 @@ Extra Ctrl or Shift modifiers change which hotkey matches; additional selection 
 Windows will launch it when you sign in. Keep the script in place so the shortcut continues to work; using a shortcut also means you only have one copy to update.
 
 ## Reload or stop
+
+For an installer-based Windows setup, uninstall **ArrowKeys** in **Settings → Apps → Installed apps**. When switching from a manual setup, exit your previous script and remove its old Startup shortcut.
 
 - **After editing:** right-click the AutoHotkey tray icon and choose **Reload Script**. Launching the same script again also replaces its earlier instance through `#SingleInstance Force`.
 - **Stop and restore the usual key behavior:** right-click the tray icon and choose **Exit**. Caps Lock can then be used as its normal toggle again.
