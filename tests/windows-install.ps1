@@ -4,11 +4,14 @@ $dir = Join-Path $env:LOCALAPPDATA 'Programs\ArrowKeys'
 $runtime = Join-Path $dir 'ArrowKeys.exe'
 $script = Join-Path $dir 'arrowkeys.ahk'
 $startup = Join-Path ([Environment]::GetFolderPath('Startup')) 'ArrowKeys.lnk'
-$probeHost = Join-Path $env:RUNNER_TEMP 'ArrowKeys-test-host.exe'
+$probeHost = Join-Path $env:RUNNER_TEMP 'ArrowKeys-cursor-probe.exe'
+$compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
+& $compiler /nologo /target:winexe "/out:$probeHost" "$PSScriptRoot\WindowsCursor.cs"
+if ($LASTEXITCODE -ne 0) { throw 'Cannot build the Win32 input probe' }
 
 function Test-Cursor([string]$Mode) {
     $trace = Join-Path $env:RUNNER_TEMP "cursor-$Mode.log"
-    $arguments = "/ErrorStdOut `"$PSScriptRoot\windows-navigation.ahk`" $Mode `"$trace`""
+    $arguments = "$Mode `"$trace`""
     $probe = Start-Process $probeHost -ArgumentList $arguments -PassThru
     $finished = $probe.WaitForExit(60000)
     if (Test-Path $trace) { Get-Content $trace }
@@ -21,7 +24,6 @@ for ($cycle = 1; $cycle -le 2; $cycle++) {
     if (!$started.WaitForExit(60000) -or $started.ExitCode -ne 0) { throw 'Installation failed' }
     if (!(Test-Path $startup) -or (Get-FileHash $script).Hash -ne (Get-FileHash "$PSScriptRoot/../arrowkeys.ahk").Hash) { throw 'Installed files or sign-in shortcut missing' }
     if (!(Get-Process ArrowKeys | Where-Object Path -eq $runtime)) { throw 'ArrowKeys did not start' }
-    if ($cycle -eq 1) { Copy-Item $runtime $probeHost }
     Test-Cursor "installed-$cycle"
     Write-Host "Uninstalling the running remapper (cycle $cycle)"
     $log = Join-Path $env:RUNNER_TEMP "uninstall-$cycle.log"
