@@ -42,7 +42,7 @@ jobs:
             test -f "$HOME/.config/karabiner/assets/complex_modifications/nauroman-arrowkeys.json"
           fi
           installer -showChoicesXML -pkg dist/ArrowKeys-macOS.pkg -target / > "$RUNNER_TEMP/arrowkeys-choices.plist"
-          python3 -c 'import plistlib,sys; choices={c["choiceIdentifier"]:c["choiceIsSelected"] for c in plistlib.load(open(sys.argv[1],"rb"))}; assert choices=={"karabiner":False,"driver":False,"profile":True}, choices' "$RUNNER_TEMP/arrowkeys-choices.plist"
+          python3 -c 'import plistlib,sys; items=plistlib.load(open(sys.argv[1],"rb"))[0]["childItems"]; choices={c["choiceIdentifier"]:c["choiceIsSelected"] for c in items}; assert choices=={"karabiner":False,"driver":False,"profile":True}, choices' "$RUNNER_TEMP/arrowkeys-choices.plist"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: macos

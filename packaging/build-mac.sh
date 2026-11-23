@@ -25,14 +25,16 @@ mkdir components
 for component in Installer.pkg Karabiner-DriverKit-VirtualHIDDevice.pkg; do
   (cd "components/$component" && xar --compression none -cf "$stage/$component" Bom PackageInfo Payload Scripts)
 done
-mkdir payload
-cp "$repo"/macos/{arrowkeys.json,configure.js,"Enable ArrowKeys.command"} payload/
-cp "$repo/LICENSE" payload/
-chmod 755 "payload/Enable ArrowKeys.command"
-chmod 644 payload/{arrowkeys.json,configure.js,LICENSE}
+support='payload/Library/Application Support/ArrowKeys'
+mkdir -p "$support" payload/Applications
+cp "$repo"/macos/{arrowkeys.json,configure.js,"Enable ArrowKeys.command"} "$support/"
+cp "$repo/LICENSE" "$support/"
+chmod 755 "$support/Enable ArrowKeys.command"
+chmod 644 "$support"/{arrowkeys.json,configure.js,LICENSE}
+install -m 755 "$repo/macos/Uninstall ArrowKeys.command" "payload/Applications/Uninstall ArrowKeys.command"
 mkdir scripts
 install -m 755 "$repo/packaging/macos-postinstall" scripts/postinstall
-pkgbuild --root payload --install-location '/Library/Application Support/ArrowKeys' \
+pkgbuild --root payload --install-location '/' \
   --ownership recommended --identifier com.nauroman.arrowkeys.profile --version 1.0.1 \
   --scripts scripts ArrowKeysProfile.pkg
 productbuild --distribution "$repo/packaging/macos-distribution.xml" --resources "$repo/packaging/mac-resources" \

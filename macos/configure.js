@@ -7,9 +7,22 @@ function readJSON(path) {
   return JSON.parse(ObjC.unwrap(string))
 }
 
-function run([configPath, assetPath]) {
+function run([configPath, assetPath, mode]) {
   const config = readJSON(configPath)
   const rule = readJSON(assetPath).rules[0]
+  if (mode === '--remove-rule') {
+    let changed = false
+    for (const profile of config.profiles) {
+      const section = profile.complex_modifications
+      if (!section || !Array.isArray(section.rules)) continue
+      const retained = section.rules.filter(item => item.description !== rule.description)
+      if (retained.length !== section.rules.length) {
+        section.rules = retained
+        changed = true
+      }
+    }
+    return changed ? JSON.stringify(config, null, 2) : 'unchanged'
+  }
   const selected = config.profiles.filter(profile => profile.selected === true)
   if (selected.length !== 1) throw new Error('Select a profile in Karabiner-Elements first.')
   const profile = selected[0]

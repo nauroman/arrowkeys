@@ -33,3 +33,6 @@ Name: "{userstartup}\ArrowKeys"; Filename: "{app}\ArrowKeys.exe"; Parameters: ""
 
 [Run]
 Filename: "{app}\ArrowKeys.exe"; Parameters: """{app}\arrowkeys.ahk"""; Flags: nowait
+
+[UninstallRun]
+Filename: "{app}\ArrowKeys.exe"; Parameters: "/restart ""{app}\arrowkeys.ahk"" --stop"; Flags: runhidden waituntilterminated skipifdoesntexist; RunOnceId: "StopArrowKeys"
