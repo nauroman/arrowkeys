@@ -4,7 +4,7 @@
 
 A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a [Karabiner-Elements](https://karabiner-elements.pqrs.org/) rule on macOS implement the same eight movements.
 
-![Keyboard layout highlighting Caps Lock and the J, K, L, I navigation keys](keyboard.png)
+[![Installer builds, tests and ClamAV scan](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml)
 
 ## Install
 
@@ -13,9 +13,13 @@ A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a [Ka
 | Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey and starts ArrowKeys for your account. The sign-in shortcut is optional. |
 | macOS 13 or newer | [ArrowKeys-macOS.zip](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.zip) | Open the ZIP and double-click **Install ArrowKeys.command**. It installs Karabiner-Elements if needed and enables ArrowKeys in your selected profile. |
 
+Find the scan log and SHA-256 checksums on the [release page](https://github.com/nauroman/arrowkeys/releases/latest). You can also [verify the build provenance](#verify-a-download).
+
 On a fresh Mac, approve the administrator prompt for the official Karabiner package and complete its **Settings** permission prompts. Karabiner needs access to keyboard events and a virtual keyboard to send the remapped keys. These approvals require your interaction. [Karabiner setup guide](https://karabiner-elements.pqrs.org/docs/manual/misc/required-macos-settings/)
 
 Open a text editor and hold **Caps Lock**. **J/K/L/I** move left/down/right/up, **U/O** go to the beginning/end of a line, and **H/;** move by word. Release Caps Lock to resume typing.
+
+![Keyboard layout highlighting Caps Lock and the J, K, L, I navigation keys](keyboard.png)
 
 ### On a Mac
 
