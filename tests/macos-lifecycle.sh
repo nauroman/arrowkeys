@@ -28,6 +28,9 @@ for cycle in 1 2; do
   asset="$(dirname "$config")/assets/complex_modifications/nauroman-arrowkeys.json"
   "$cli" --lint-complex-modifications "$asset"
   test -x "$uninstall"
+  for command in "$uninstall" "$support/Enable ArrowKeys.command"; do
+    xattr -p com.apple.ResourceFork "$command" >/dev/null
+  done
   installer -showChoicesXML -pkg "$pkg" -target / > "$stage/choices.plist"
   python3 -c 'import plistlib,sys; items=plistlib.load(open(sys.argv[1],"rb"))[0]["childItems"]; choices={c["choiceIdentifier"]:c["choiceIsSelected"] for c in items}; assert choices=={"karabiner":False,"driver":False,"profile":True}, choices' "$stage/choices.plist"
   mkdir "$stage/on-$cycle" "$stage/off-$cycle"

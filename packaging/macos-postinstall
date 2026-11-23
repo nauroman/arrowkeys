@@ -1,5 +1,21 @@
 #!/bin/bash
 set -euo pipefail
+# Finder stores custom icons for .command files in filesystem metadata.
+if ! /usr/bin/osascript -l JavaScript - "$(dirname "$0")/ArrowKeys.icns" "${3%/}" <<'JXA'
+ObjC.import('AppKit')
+function run(args) {
+  const icon = $.NSImage.alloc.initWithContentsOfFile(args[0])
+  const paths = ['/Applications/Uninstall ArrowKeys.command',
+                 '/Library/Application Support/ArrowKeys/Enable ArrowKeys.command']
+  for (const path of paths) {
+    if (!$.NSWorkspace.sharedWorkspace.setIconForFileOptions(icon, args[1] + path, 0))
+      throw Error('Cannot set the Finder icon for ' + path)
+  }
+}
+JXA
+then
+  echo 'Finder could not apply the ArrowKeys command icons.' >&2
+fi
 account=$(/usr/bin/stat -f '%Su' /dev/console)
 case "$account" in ''|root|loginwindow|_*) exit 0 ;; esac
 uid=$(/usr/bin/id -u "$account")

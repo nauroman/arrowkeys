@@ -34,8 +34,11 @@ chmod 644 "$support"/{arrowkeys.json,configure.js,LICENSE}
 install -m 755 "$repo/macos/Uninstall ArrowKeys.command" "payload/Applications/Uninstall ArrowKeys.command"
 mkdir scripts
 install -m 755 "$repo/packaging/macos-postinstall" scripts/postinstall
+install -m 644 "$repo/assets/ArrowKeys.icns" scripts/ArrowKeys.icns
+cp -R "$repo/packaging/mac-resources" resources
+sips -Z 128 "$repo/assets/ArrowKeys.png" --out resources/ArrowKeys.png >/dev/null
 pkgbuild --root payload --install-location '/' \
-  --ownership recommended --identifier com.nauroman.arrowkeys.profile --version 1.0.1 \
+  --ownership recommended --identifier com.nauroman.arrowkeys.profile --version 1.0.2 \
   --scripts scripts ArrowKeysProfile.pkg
-productbuild --distribution "$repo/packaging/macos-distribution.xml" --resources "$repo/packaging/mac-resources" \
+productbuild --distribution "$repo/packaging/macos-distribution.xml" --resources resources \
   --package-path "$stage" "$out/ArrowKeys-macOS.pkg"

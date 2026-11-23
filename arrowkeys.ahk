@@ -5,6 +5,10 @@
 if A_Args.Length && A_Args[1] = "--stop"
     ExitApp
 
+; The Store executable embeds its icon. The standalone installer supplies it alongside the script.
+if !A_IsCompiled && FileExist(A_ScriptDir "\ArrowKeys.ico")
+    TraySetIcon A_ScriptDir "\ArrowKeys.ico"
+
 ; Caps is an Alt modifier here; never leave the Caps Lock toggle enabled.
 SetCapsLockState "AlwaysOff"
 ; Another AHK process can bypass AlwaysOff with its own synthetic toggle.

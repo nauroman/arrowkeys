@@ -23,6 +23,10 @@ for ($cycle = 1; $cycle -le 2; $cycle++) {
     $started = Start-Process $Setup -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -PassThru
     if (!$started.WaitForExit(60000) -or $started.ExitCode -ne 0) { throw 'Installation failed' }
     if (!(Test-Path $startup) -or (Get-FileHash $script).Hash -ne (Get-FileHash "$PSScriptRoot/../arrowkeys.ahk").Hash) { throw 'Installed files or sign-in shortcut missing' }
+    $icon = Join-Path $dir 'ArrowKeys.ico'
+    $link = (New-Object -ComObject WScript.Shell).CreateShortcut($startup)
+    if (($link.IconLocation -split ',')[0] -ne $icon -or
+        (Get-FileHash $icon).Hash -ne (Get-FileHash "$PSScriptRoot/../assets/ArrowKeys.ico").Hash) { throw 'Installed shortcut icon mismatch' }
     if (!(Get-Process ArrowKeys | Where-Object Path -eq $runtime)) { throw 'ArrowKeys did not start' }
     Test-Cursor "installed-$cycle"
     Write-Host "Uninstalling the running remapper (cycle $cycle)"
