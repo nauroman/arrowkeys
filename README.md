@@ -1,8 +1,8 @@
-# arrowkeys
+# ArrowKeys
 
 **Move through text without reaching for the arrow keys.** Hold **Caps Lock** and use **J K L I** to move left, down, right and up. Jump by word or go to the start and end of a line with the nearby keys.
 
-A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a native menu bar app on macOS implement the same eight movements.
+ArrowKeys runs as a native menu bar app on Mac and uses [AutoHotkey v2](https://www.autohotkey.com/) on Windows. Both editions work offline.
 
 [![Installer builds, tests and ClamAV scan](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml)
 
@@ -15,19 +15,25 @@ A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a nat
 
 Find the scan log and SHA-256 checksums on the [release page](https://github.com/nauroman/arrowkeys/releases/latest). You can also [verify the build provenance](#verify-a-download).
 
-Allow **ArrowKeys** in **System Settings → Privacy & Security → Accessibility**. Its menu shows **Navigation active** when ready. ArrowKeys maps Caps Lock to Option on connected keyboards, including keyboards attached while it is running. Select **Open at Login** in the ArrowKeys menu for automatic startup.
-
 Open a text editor and hold **Caps Lock**. **J/K/L/I** move left/down/right/up, **U/O** go to the beginning/end of a line, and **H/;** move by word. Release Caps Lock to resume typing.
 
 ![Keyboard layout highlighting Caps Lock and the J, K, L, I navigation keys](keyboard.png)
 
 ### On a Mac
 
+The native installer is about **1.1 MB** and supports Apple silicon and Intel. The older **43.4 MB** package from v1.0.1 bundled Karabiner-Elements.
+
+**If the installer says “Not Opened”**, click **Done**. The package is unsigned and has no Apple notarization. After verifying your GitHub download, open **System Settings → Privacy & Security**, scroll to **Security**, and click **Open Anyway** for **ArrowKeys-macOS.pkg**. [Verify your download](#verify-a-download) · [Apple’s instructions](https://support.apple.com/en-us/102445)
+
+Open **Applications → ArrowKeys** and enable it in **System Settings → Privacy & Security → Accessibility**. Its menu shows **Navigation active** when ready. ArrowKeys maps Caps Lock to Option on connected keyboards, including ones attached while it is running. Select **Open at Login** in the ArrowKeys menu for automatic startup.
+
 Caps Lock acts as **Option**, and either physical Option key also activates the shortcuts. **U/O** send **Command + Left/Right** and **H/;** send **Option + Left/Right**. The rule uses physical key positions, including the U.S. semicolon position immediately to the right of L. Holding a third modifier such as Shift leaves that chord to the app. A mapped Option chord takes precedence over typing its usual special character.
 
 ArrowKeys processes eight physical key positions through a macOS event tap. Input-source shortcuts such as an existing Option + Shift binding pass through. Switching from the Karabiner edition? Remove its ArrowKeys rule in **Complex Modifications** to avoid two handlers processing the same shortcut. You can keep Karabiner for other rules.
 
-To uninstall, turn off **Open at Login**, quit ArrowKeys, and move the app from Applications to Trash. If you manually changed Caps Lock in Modifier Keys for an earlier version, you can restore that setting there.
+To uninstall, move **ArrowKeys.app** from Applications to Trash. If Finder asks you to close the app first, select **Quit ArrowKeys** in its menu and try again. Both quitting and moving the running app to Trash restore the previous Caps Lock assignment on each keyboard it changed. With the default Mac settings, Caps Lock toggles uppercase again.
+
+If you manually assigned Caps Lock to Option for an older version, choose **Caps Lock** for that key in **System Settings → Keyboard → Keyboard Shortcuts… → Modifier Keys**.
 
 ### Verify a download
 
@@ -40,7 +46,7 @@ gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
 gh attestation verify ArrowKeys-macOS.pkg --repo nauroman/arrowkeys
 ```
 
-The ArrowKeys installers have no publisher signatures, and the Mac package has no Apple notarization. macOS may show an unidentified-developer warning. The [Windows hotkeys](arrowkeys.ahk) and [native macOS handler](macos/ArrowKeys.m) are available for inspection. [Release files and scan results](https://github.com/nauroman/arrowkeys/releases/latest)
+The Windows installer also has no publisher signature. You can inspect the keyboard handlers and read how each edition processes input. [Windows hotkeys](arrowkeys.ahk) · [macOS handler](macos/ArrowKeys.m) · [Privacy](PRIVACY.md)
 
 ### Windows setup from source
 
