@@ -11,7 +11,7 @@ cp "$repo/macos/Info.plist" "$app/Contents/"
 cp "$repo/LICENSE" "$app/Contents/Resources/"
 cp "$repo/assets/ArrowKeys.icns" "$app/Contents/Resources/"
 xcrun clang -arch arm64 -arch x86_64 -mmacosx-version-min=13.0 -fobjc-arc -Os \
-  -framework Cocoa -framework Carbon -framework ApplicationServices -framework ServiceManagement \
+  -framework Cocoa -framework Carbon -framework ApplicationServices -framework ServiceManagement -framework IOKit \
   "$repo/macos/ArrowKeys.m" -o "$app/Contents/MacOS/ArrowKeys"
 codesign --force --sign - --identifier com.nauroman.ArrowKeys "$app"
 pkgbuild --component "$app" --install-location /Applications --identifier com.nauroman.arrowkeys.native \

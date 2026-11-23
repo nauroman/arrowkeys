@@ -15,11 +15,9 @@ A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a nat
 
 Find the scan log and SHA-256 checksums on the [release page](https://github.com/nauroman/arrowkeys/releases/latest). You can also [verify the build provenance](#verify-a-download).
 
-Allow **ArrowKeys** in **System Settings → Privacy & Security → Accessibility**. Its menu shows **Navigation active** when ready. Hold **Option** for navigation. A Caps Lock key you have already assigned to Option works too. ArrowKeys leaves keyboard modifier assignments and input sources as you configured them. Select **Open at Login** in the ArrowKeys menu for automatic startup.
+Allow **ArrowKeys** in **System Settings → Privacy & Security → Accessibility**. Its menu shows **Navigation active** when ready. ArrowKeys maps Caps Lock to Option on connected keyboards, including keyboards attached while it is running. Select **Open at Login** in the ArrowKeys menu for automatic startup.
 
-Open a text editor and hold **Caps Lock** on Windows or **Option** on macOS. **J/K/L/I** move left/down/right/up, **U/O** go to the beginning/end of a line, and **H/;** move by word. Release the modifier to resume typing.
-
-If you want Caps Lock to act as Option across macOS, you can assign it per keyboard in **System Settings → Keyboard → Keyboard Shortcuts → Modifier Keys**. This optional system-wide setting survives app removal.
+Open a text editor and hold **Caps Lock**. **J/K/L/I** move left/down/right/up, **U/O** go to the beginning/end of a line, and **H/;** move by word. Release Caps Lock to resume typing.
 
 ![Keyboard layout highlighting Caps Lock and the J, K, L, I navigation keys](keyboard.png)
 
@@ -29,7 +27,7 @@ Caps Lock acts as **Option**, and either physical Option key also activates the 
 
 ArrowKeys processes eight physical key positions through a macOS event tap. Input-source shortcuts such as an existing Option + Shift binding pass through. Switching from the Karabiner edition? Remove its ArrowKeys rule in **Complex Modifications** to avoid two handlers processing the same shortcut. You can keep Karabiner for other rules.
 
-To uninstall, turn off **Open at Login**, quit ArrowKeys, and move the app from Applications to Trash. If you previously changed your Caps Lock assignment manually for an older release, you can restore it in **System Settings → Keyboard → Keyboard Shortcuts → Modifier Keys**.
+To uninstall, turn off **Open at Login**, quit ArrowKeys, and move the app from Applications to Trash. If you manually changed Caps Lock in Modifier Keys for an earlier version, you can restore that setting there.
 
 ### Verify a download
 

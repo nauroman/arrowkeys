@@ -1,6 +1,38 @@
 #define ARROWKEYS_TEST
 #import "../macos/ArrowKeys.m"
+#import "../macos/KeyboardMapping.h"
 #include <assert.h>
+
+static void testKeyboardRestoration(void) {
+    KeyboardMapping *mapping = [KeyboardMapping new];
+    NSDictionary *capsToControl = @{sourceKey:@(caps), destinationKey:@(0x7000000e0)};
+    NSDictionary *capsToOption = @{sourceKey:@(caps), destinationKey:@(option)};
+    NSDictionary *other = @{sourceKey:@(0x70000003a), destinationKey:@(0x70000003b)};
+    NSDictionary *newOther = @{sourceKey:@(0x70000003a), destinationKey:@(0x70000003c)};
+    NSArray *before = @[capsToControl, other];
+    __block NSArray *current = before;
+    BOOL (^write)(NSArray *) = ^BOOL(NSArray *value) { current = [value copy]; return YES; };
+    BOOL (^neverWrite)(NSArray *) = ^BOOL(NSArray *unused) { abort(); };
+    assert([mapping updateKeyboard:@1 current:current restoring:NO write:write]);
+    assert(([current isEqual:@[other, capsToOption]]));
+    assert([mapping updateKeyboard:@1 current:current restoring:YES write:write]);
+    assert([current isEqual:before]);
+    // Preserve new unrelated assignments made after ArrowKeys launched.
+    current = @[newOther, capsToOption];
+    assert([mapping updateKeyboard:@1 current:current restoring:YES write:write]);
+    assert(([current isEqual:@[newOther, capsToControl]]));
+    // Do not overwrite a later user change to Caps on refresh or removal.
+    assert([mapping updateKeyboard:@1 current:@[newOther] restoring:NO write:neverWrite]);
+    assert([mapping updateKeyboard:@1 current:@[newOther] restoring:YES write:neverWrite]);
+    // A second keyboard already configured by its owner is never claimed.
+    assert([mapping updateKeyboard:@2 current:@[capsToOption] restoring:NO write:neverWrite]);
+    assert([mapping updateKeyboard:@2 current:@[capsToOption] restoring:YES write:neverWrite]);
+    // Restore a keyboard that started with no custom assignment.
+    assert([mapping updateKeyboard:@3 current:nil restoring:NO write:write]);
+    assert([mapping updateKeyboard:@3 current:current restoring:YES write:write]);
+    assert(current.count == 0);
+    puts("Restored original Caps Lock assignments and preserved independent keyboard edits.");
+}
 
 static NSEvent *sendKey(CGKeyCode key, CGEventType type, CGEventFlags flags, bool repeat) {
     CGEventRef event = CGEventCreateKeyboardEvent(NULL, key, type == kCGEventKeyDown);
@@ -14,6 +46,7 @@ static NSEvent *sendKey(CGKeyCode key, CGEventType type, CGEventFlags flags, boo
 
 int main(void) {
     @autoreleasepool {
+        testKeyboardRestoration();
         [NSApplication sharedApplication];
         NSTextView *text = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 640, 240)];
         text.font = [NSFont monospacedSystemFontOfSize:15 weight:NSFontWeightRegular];
