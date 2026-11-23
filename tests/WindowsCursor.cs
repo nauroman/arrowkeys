@@ -67,6 +67,15 @@ class WindowsCursor : Form
             await Move(0, 74);
             await Key(Caps, false); await Key(Caps, true);
             if (box.Text != Sample.Insert(27, "J") || (GetKeyState(Caps) & 1) != 0) throw new Exception("Normal Caps Lock typing did not return");
+            foreach (byte letter in new byte[] {74,75,76,73,85,79,72,186}) {
+                box.Text = Sample;
+                await Move(LeftAlt, letter);
+                if (box.SelectionStart != 27 || box.Text != Sample)
+                    throw new Exception("ArrowKeys navigation survived uninstall for VK " + letter);
+            }
+            if (await Move(0, 37) != 26) throw new Exception("Native left arrow stopped working");
+            if (await Move(Ctrl, 37) >= 27) throw new Exception("Native previous-word navigation stopped working");
+            Trace("All eight former shortcuts, Caps Lock, normal arrows and Ctrl+Left passed after removal");
             return;
         }
         byte[,] directions = {{74,37,0},{75,40,0},{76,39,0},{73,38,0},

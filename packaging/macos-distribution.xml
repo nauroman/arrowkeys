@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
   <title>ArrowKeys</title>
+  <background file="ArrowKeys.png" alignment="bottomleft" scaling="none"/>
+  <background-darkAqua file="ArrowKeys.png" alignment="bottomleft" scaling="none"/>
   <welcome file="welcome.rtf"/>
   <conclusion file="finish.rtf"/>
   <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true"/>
@@ -8,5 +10,5 @@
   <options customize="never" hostArchitectures="x86_64,arm64" require-scripts="true"/>
   <choices-outline><line choice="app"/></choices-outline>
   <choice id="app" visible="false"><pkg-ref id="com.nauroman.arrowkeys.native"/></choice>
-  <pkg-ref id="com.nauroman.arrowkeys.native" version="1.1.0">#ArrowKeysApp.pkg</pkg-ref>
+  <pkg-ref id="com.nauroman.arrowkeys.native" version="1.1.1">#ArrowKeysApp.pkg</pkg-ref>
 </installer-gui-script>

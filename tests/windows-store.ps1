@@ -62,3 +62,8 @@ public class GuideCapture {
 }
 if (Get-AppxPackage -Name ArrowKeys.CI) { throw 'Store package survived uninstall' }
 if (Get-Process ArrowKeys -ErrorAction SilentlyContinue) { throw 'Store runtime survived uninstall' }
+$removed = Join-Path $env:RUNNER_TEMP 'cursor-removed-msix.log'
+$probe = Start-Process $probePath -ArgumentList ('removed "{0}"' -f $removed) -PassThru
+if (!$probe.WaitForExit(60000)) { $probe.Kill(); throw 'Post-removal cursor test timed out' }
+Get-Content $removed
+if ($probe.ExitCode) { throw 'Normal typing was not restored after MSIX removal' }

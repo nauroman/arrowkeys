@@ -2,6 +2,8 @@
 #import <Carbon/Carbon.h>
 #import <ApplicationServices/ApplicationServices.h>
 #import <ServiceManagement/ServiceManagement.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 typedef struct { CGKeyCode input, arrow; CGEventFlags modifier; } Binding;
 static const Binding bindings[] = {
@@ -49,6 +51,7 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 @property(strong) NSStatusItem *item;
 @property(strong) NSMenuItem *status;
 @property(strong) NSMenuItem *login;
+@property(strong) dispatch_source_t bundleWatcher;
 @end
 @implementation Controller
 - (void)connect {
@@ -81,7 +84,9 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 }
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     self.item = [NSStatusBar.systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
-    self.item.button.title = @"⇥";
+    NSImage *icon = [NSImage imageNamed:@"ArrowKeys"];
+    icon.size = NSMakeSize(20, 20);
+    self.item.button.image = icon;
     self.item.button.toolTip = @"ArrowKeys";
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@"ArrowKeys"];
     self.status = [menu addItemWithTitle:@"ArrowKeys" action:nil keyEquivalent:@""];
@@ -91,12 +96,35 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     self.login.state = SMAppService.mainAppService.status == SMAppServiceStatusEnabled;
     [menu addItemWithTitle:@"Quit ArrowKeys" action:@selector(terminate:) keyEquivalent:@"q"].target = NSApp;
     self.item.menu = menu;
+    // A menu-bar process can outlive its on-disk bundle when it is moved or deleted.
+    int fd = open(NSBundle.mainBundle.bundlePath.fileSystemRepresentation, O_EVTONLY);
+    if (fd >= 0) {
+        self.bundleWatcher = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, fd,
+            DISPATCH_VNODE_DELETE | DISPATCH_VNODE_RENAME | DISPATCH_VNODE_REVOKE, dispatch_get_main_queue());
+        dispatch_source_set_event_handler(self.bundleWatcher, ^{
+            SMAppService *login = SMAppService.mainAppService;
+            if (login.status == SMAppServiceStatusEnabled || login.status == SMAppServiceStatusRequiresApproval)
+                [login unregisterAndReturnError:NULL];
+            [NSApp terminate:nil];
+        });
+        dispatch_source_set_cancel_handler(self.bundleWatcher, ^{ close(fd); });
+        dispatch_resume(self.bundleWatcher);
+    }
     if (!AXIsProcessTrusted()) {
         NSDictionary *options = @{(__bridge NSString *)kAXTrustedCheckOptionPrompt: @YES};
         AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
     }
     [self connect];
     [NSTimer scheduledTimerWithTimeInterval:2 repeats:YES block:^(NSTimer *timer){ [self connect]; }];
+}
+- (void)applicationWillTerminate:(NSNotification *)notification {
+    if (self.bundleWatcher) dispatch_source_cancel(self.bundleWatcher);
+    if (tap) {
+        CGEventTapEnable(tap, false);
+        CFMachPortInvalidate(tap);
+        CFRelease(tap);
+        tap = NULL;
+    }
 }
 @end
 int main(void) {

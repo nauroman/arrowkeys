@@ -32,5 +32,18 @@ int main(void) {
             assert(sendKey(bindings[i].input, kCGEventKeyDown, kCGEventFlagMaskAlternate | kCGEventFlagMaskShift, false).keyCode == bindings[i].input);
         }
         puts("Passed all eight AppKit cursor movements, repeats, release order and modifier checks.");
+        // The language switcher's Option+Shift chord consists of flags-changed events.
+        const CGKeyCode keys[] = {kVK_Option, kVK_Shift, kVK_Shift, kVK_Option};
+        const CGEventFlags flags[] = {kCGEventFlagMaskAlternate, kCGEventFlagMaskAlternate | kCGEventFlagMaskShift,
+                                      kCGEventFlagMaskAlternate, 0};
+        for (size_t i = 0; i < 4; ++i) {
+            CGEventRef event = CGEventCreateKeyboardEvent(NULL, keys[i], true);
+            CGEventSetType(event, kCGEventFlagsChanged);
+            CGEventSetFlags(event, flags[i]);
+            assert(translate(NULL, kCGEventFlagsChanged, event, NULL) == event);
+            assert(CGEventGetFlags(event) == flags[i] && CGEventGetIntegerValueField(event, kCGKeyboardEventKeycode) == keys[i]);
+            CFRelease(event);
+        }
+        puts("The complete Option+Shift modifier sequence passed through unchanged.");
     }
 }
