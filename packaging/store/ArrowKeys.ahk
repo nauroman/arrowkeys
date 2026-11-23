@@ -1,17 +1,17 @@
 #Requires AutoHotkey v2.0
 KeyHistory 0
-;@Ahk2Exe-SetName ArrowKeys
-;@Ahk2Exe-SetDescription ArrowKeys keyboard navigation
+;@Ahk2Exe-SetName Arrow Keys
+;@Ahk2Exe-SetDescription Arrow Keys keyboard navigation
 ListLines false
 
 if A_Args.Length && A_Args[1] = "--stop"
     ExitApp
 
-A_IconTip := "ArrowKeys"
+A_IconTip := "Arrow Keys"
 A_TrayMenu.Delete()
 A_TrayMenu.Add("Shortcut guide", ShowGuide)
 A_TrayMenu.Default := "Shortcut guide"
-A_TrayMenu.Add("Exit ArrowKeys", (*) => ExitApp())
+A_TrayMenu.Add("Exit Arrow Keys", (*) => ExitApp())
 
 ; Windows supplies the same per-package LocalState on upgrades.
 familyLength := 0
@@ -32,7 +32,7 @@ if !statePath || !FileExist(statePath "\guide-seen") {
 ShowGuide(*) {
     static window := 0
     if !window {
-        window := Gui(, "ArrowKeys")
+        window := Gui(, "Arrow Keys")
         window.BackColor := "FAF9F6"
         window.MarginX := 24
         window.MarginY := 10
@@ -50,7 +50,7 @@ ShowGuide(*) {
         window.AddText("w560", "Try it here")
         window.SetFont("s11 Norm")
         sample := window.AddEdit("w560 r2", "Hold Caps Lock and tap H to move back one word.")
-        window.AddText("w560", "To stop remapping, choose Exit ArrowKeys from the system tray.")
+        window.AddText("w560", "To stop remapping, choose Exit Arrow Keys from the system tray.")
         window.AddLink("w560", 'On GitHub you can <a href="https://github.com/nauroman/arrowkeys">review the source</a> or <a href="https://github.com/nauroman/arrowkeys/releases">download installers and SHA-256 checksums</a>.')
         window.AddButton("xm w130 Default", "Hide guide").OnEvent("Click", (*) => window.Hide())
         window.OnEvent("Close", (*) => window.Hide())

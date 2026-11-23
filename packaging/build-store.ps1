@@ -5,7 +5,7 @@ param(
     [Parameter(Mandatory)][string]$Publisher,
     [Parameter(Mandatory)][string]$PublisherDisplayName,
     [Parameter(Mandatory)][version]$Version,
-    [string]$DisplayName = 'ArrowKeys'
+    [string]$DisplayName = 'Arrow Keys'
 )
 
 $ErrorActionPreference = 'Stop'
