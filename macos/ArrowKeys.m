@@ -88,7 +88,11 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     self.keyboards = [KeyboardMapping new];
     self.item = [NSStatusBar.systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
-    self.item.button.title = @"⇥";
+    NSImage *icon = [[NSImage imageNamed:@"ArrowKeys"] copy];
+    icon.size = NSMakeSize(20, 20);
+    self.item.button.image = icon;
+    self.item.button.imagePosition = NSImageOnly;
+    [self.item.button setAccessibilityLabel:@"ArrowKeys"];
     self.item.button.toolTip = @"ArrowKeys";
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@"ArrowKeys"];
     self.status = [menu addItemWithTitle:@"ArrowKeys" action:nil keyEquivalent:@""];

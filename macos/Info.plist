@@ -8,6 +8,8 @@
 	<string>com.nauroman.ArrowKeys</string>
 	<key>CFBundleName</key>
 	<string>ArrowKeys</string>
+	<key>CFBundleIconFile</key>
+	<string>ArrowKeys.icns</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

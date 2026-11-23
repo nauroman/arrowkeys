@@ -9,7 +9,8 @@ PrivilegesRequired=lowest
 DisableDirPage=yes
 DisableProgramGroupPage=yes
 DisableWelcomePage=yes
-UninstallDisplayIcon={app}\ArrowKeys.exe
+SetupIconFile=..\assets\ArrowKeys.ico
+UninstallDisplayIcon={app}\ArrowKeys.ico
 Compression=lzma2
 SolidCompression=yes
 OutputDir={#Dist}
@@ -18,6 +19,7 @@ CloseApplications=yes
 RestartApplications=no
 
 [Files]
+Source: "..\assets\ArrowKeys.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Runtime}\AutoHotkey32.exe"; DestDir: "{app}"; DestName: "ArrowKeys.exe"; Flags: ignoreversion
 Source: "{#Runtime}\license.txt"; DestDir: "{app}"; DestName: "AutoHotkey-license.txt"; Flags: ignoreversion
 Source: "..\arrowkeys.ahk"; DestDir: "{app}"; Flags: ignoreversion
@@ -28,8 +30,8 @@ Source: "AutoHotkey-source.url"; DestDir: "{app}"; Flags: ignoreversion
 Name: startup; Description: "Start ArrowKeys when I sign in"; Flags: checkedonce
 
 [Icons]
-Name: "{userprograms}\ArrowKeys"; Filename: "{app}\ArrowKeys.exe"; Parameters: """{app}\arrowkeys.ahk"""
-Name: "{userstartup}\ArrowKeys"; Filename: "{app}\ArrowKeys.exe"; Parameters: """{app}\arrowkeys.ahk"""; Tasks: startup
+Name: "{userprograms}\ArrowKeys"; Filename: "{app}\ArrowKeys.exe"; Parameters: """{app}\arrowkeys.ahk"""; IconFilename: "{app}\ArrowKeys.ico"
+Name: "{userstartup}\ArrowKeys"; Filename: "{app}\ArrowKeys.exe"; Parameters: """{app}\arrowkeys.ahk"""; IconFilename: "{app}\ArrowKeys.ico"; Tasks: startup
 
 [Run]
 Filename: "{app}\ArrowKeys.exe"; Parameters: """{app}\arrowkeys.ahk"""; Flags: nowait
