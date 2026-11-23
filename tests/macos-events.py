@@ -11,8 +11,10 @@ def write(path, value):
 
 prefix = Path("json/manipulator_manager")
 prefix.mkdir(parents=True)
-asset = Path(__file__).resolve().parents[1] / "macos" / "arrowkeys.json"
-write("rules.json", json.loads(asset.read_text())["rules"][0]["manipulators"])
+config = json.loads(Path(sys.argv[2]).read_text())
+profile = next(profile for profile in config["profiles"] if profile.get("selected"))
+rules = profile.get("complex_modifications", {}).get("rules", [])
+write("rules.json", [m for rule in rules for m in rule["manipulators"]])
 cases = []
 expected = []
 
@@ -31,7 +33,8 @@ def chord(keys, output, modifiers, reverse=False):
     expected.append((output, set(modifiers)))
 
 
-for layer in ("caps_lock", "left_option", "right_option"):
+removed = len(sys.argv) > 3 and sys.argv[3] == "removed"
+for layer in (() if removed else ("caps_lock", "left_option", "right_option")):
     for letter, direction, mods in [
         ("j", "left", []), ("k", "down", []), ("l", "right", []), ("i", "up", []),
         ("u", "left", ["left_command"]), ("o", "right", ["left_command"]),
@@ -39,15 +42,22 @@ for layer in ("caps_lock", "left_option", "right_option"):
     ]:
         for reverse in (False, True):
             chord([layer, letter], direction + "_arrow", mods, reverse)
-chord(["caps_lock"], None, [])
-chord(["caps_lock", "a"], "a", ["left_option"])
+if not removed:
+    chord(["caps_lock"], None, [])
+    chord(["caps_lock", "a"], "a", ["left_option"])
 for letter in ("j", "k", "l", "i", "u", "o", "h", "semicolon"):
     chord([letter], letter, [])
-for extra in ("left_shift", "left_control", "left_command"):
-    chord([extra, "caps_lock", "j"], "j", [extra, "left_option"])
+if removed:
+    chord(["left_option", "j"], "j", ["left_option"])
+    chord(["right_option", "l"], "l", ["right_option"])
+    chord(["caps_lock"], "caps_lock", [])
+else:
+    for extra in ("left_shift", "left_control", "left_command"):
+        chord([extra, "caps_lock", "j"], "j", [extra, "left_option"])
 
 write(prefix / "tests.json", cases)
 subprocess.run([sys.argv[1]], check=True)
+cursor_events = []
 for index, (key, modifiers) in enumerate(expected):
     held = set()
     downs = []
@@ -55,7 +65,7 @@ for index, (key, modifiers) in enumerate(expected):
     option_presses = 0
     for event in json.loads(Path(f"out{index}.json").read_text()):
         code = event["event"]["momentary_switch_event"]["key_code"]
-        assert code != "caps_lock", cases[index]
+        assert removed or code != "caps_lock", cases[index]
         down = event["event_type"] == "key_down"
         if down and code == "left_option":
             option_presses += 1
@@ -73,4 +83,8 @@ for index, (key, modifiers) in enumerate(expected):
     assert ups == ([key] if key else []), (cases[index], ups)
     if key is None:
         assert option_presses == 1, cases[index]
+    if key and key.endswith("_arrow"):
+        cursor_events.append({"input": cases[index]["description"].split("+")[-1],
+                              "arrow": downs[0][0], "modifiers": sorted(downs[0][1])})
+write("cursor-events.json", cursor_events)
 print(f"Passed {len(cases)} Karabiner event sequences.")

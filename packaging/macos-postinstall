@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+account=$(/usr/bin/stat -f '%Su' /dev/console)
+case "$account" in ''|root|loginwindow|_*) exit 0 ;; esac
+uid=$(/usr/bin/id -u "$account")
+[[ "$uid" -ge 501 ]] || exit 0
+# Configure the desktop user's profile with that user's privileges and home directory.
+exec /bin/launchctl asuser "$uid" /usr/bin/sudo -H -u "#$uid" \
+  /bin/bash '/Library/Application Support/ArrowKeys/Enable ArrowKeys.command' --configure-only

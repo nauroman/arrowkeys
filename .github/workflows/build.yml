@@ -27,16 +27,10 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - run: python3 packaging/build-mac.py dist/ArrowKeys-macOS.zip
-      - run: bash tests/macos-install.sh "$PWD/dist/ArrowKeys-macOS.zip"
-      - name: Install and validate on a clean macOS runner
-        run: |
-          cli='/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli'
-          test ! -e "$cli"
-          unzip -qd "$RUNNER_TEMP/arrowkeys" dist/ArrowKeys-macOS.zip
-          export XDG_CONFIG_HOME="$RUNNER_TEMP/arrowkeys-profile"
-          "$RUNNER_TEMP/arrowkeys/Install ArrowKeys.command" --non-interactive
-          "$cli" --lint-complex-modifications "$XDG_CONFIG_HOME/karabiner/assets/complex_modifications/nauroman-arrowkeys.json"
+      - run: bash packaging/build-mac.sh dist
+      - run: bash tests/macos-install.sh "$PWD/macos"
+      - name: Test install, cursor movement, uninstall and reinstall on a clean Mac
+        run: bash tests/macos-lifecycle.sh "$PWD/dist/ArrowKeys-macOS.pkg"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: macos
@@ -81,4 +75,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           sha256sum ArrowKeys-* AutoHotkey-* > SHA256SUMS.txt
-          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --title "ArrowKeys $GITHUB_REF_NAME" --notes "Download ArrowKeys-Windows-Setup.exe for Windows or ArrowKeys-macOS.zip for Mac. Both downloads passed the [automated checks and ClamAV scan]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID). The assets include SHA-256 checksums and have GitHub build provenance. See the README for installation, permissions and verification." ./*
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --title "ArrowKeys $GITHUB_REF_NAME" --notes "Download ArrowKeys-Windows-Setup.exe for Windows or ArrowKeys-macOS.pkg for Mac. The Mac package works offline and opens in Apple's Installer. Both downloads passed the [installation tests and ClamAV scan]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID). The assets include SHA-256 checksums and have GitHub build provenance. The ArrowKeys package itself is unsigned. See the README for permissions and verification." ./*

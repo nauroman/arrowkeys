@@ -1,12 +1,11 @@
 #!/bin/bash
 set -euo pipefail
-archive=$1
+source_dir=$1
 test_dir=$(mktemp -d)
 trap 'rm -rf "$test_dir"' EXIT
-unzip -q "$archive" -d "$test_dir"
 cd "$test_dir"
 export XDG_CONFIG_HOME="$test_dir/profile"
-launcher='./Install ArrowKeys.command'
+launcher="$source_dir/Enable ArrowKeys.command"
 "$launcher" --configure-only
 config="$XDG_CONFIG_HOME/karabiner/karabiner.json"
 cp "$config" first.json

@@ -1,7 +1,7 @@
 [Setup]
 AppId=nauroman.ArrowKeys
 AppName=ArrowKeys
-AppVersion=1.0.0
+AppVersion=1.0.1
 AppPublisher=Roman Naumov
 AppPublisherURL=https://github.com/nauroman/arrowkeys
 DefaultDirName={localappdata}\Programs\ArrowKeys
@@ -33,3 +33,6 @@ Name: "{userstartup}\ArrowKeys"; Filename: "{app}\ArrowKeys.exe"; Parameters: ""
 
 [Run]
 Filename: "{app}\ArrowKeys.exe"; Parameters: """{app}\arrowkeys.ahk"""; Flags: nowait
+
+[UninstallRun]
+Filename: "{app}\ArrowKeys.exe"; Parameters: "/restart ""{app}\arrowkeys.ahk"" --stop"; Flags: runhidden waituntilterminated skipifdoesntexist; RunOnceId: "StopArrowKeys"
