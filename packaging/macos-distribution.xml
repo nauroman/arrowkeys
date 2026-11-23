@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
   <title>ArrowKeys</title>
-  <background file="ArrowKeys.png" alignment="bottomleft" scaling="none"/>
-  <background-darkAqua file="ArrowKeys.png" alignment="bottomleft" scaling="none"/>
-  <welcome file="welcome.html"/>
-  <conclusion file="finish.html"/>
+  <welcome file="welcome.rtf"/>
+  <conclusion file="finish.rtf"/>
   <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true"/>
   <volume-check><allowed-os-versions><os-version min="13.0"/></allowed-os-versions></volume-check>
   <options customize="never" hostArchitectures="x86_64,arm64" require-scripts="true"/>
@@ -22,5 +20,5 @@
   <choice id="profile" visible="false"><pkg-ref id="com.nauroman.arrowkeys.profile"/></choice>
   <pkg-ref id="org.pqrs.Karabiner-Elements" version="16.3.0">#Installer.pkg</pkg-ref>
   <pkg-ref id="org.pqrs.Karabiner-DriverKit-VirtualHIDDevice" version="8.5.0">#Karabiner-DriverKit-VirtualHIDDevice.pkg</pkg-ref>
-  <pkg-ref id="com.nauroman.arrowkeys.profile" version="1.0.2">#ArrowKeysProfile.pkg</pkg-ref>
+  <pkg-ref id="com.nauroman.arrowkeys.profile" version="1.0.1">#ArrowKeysProfile.pkg</pkg-ref>
 </installer-gui-script>
