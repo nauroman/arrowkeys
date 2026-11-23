@@ -23,6 +23,15 @@ static NSImage *menuBarIcon(void) {
     return icon;
 }
 
+static NSString *const loginSetupKey = @"OpenAtLoginConfigured";
+
+static void configureLoginDefault(NSUserDefaults *defaults, SMAppServiceStatus status, BOOL (^registerItem)(void)) {
+    if ([defaults boolForKey:loginSetupKey]) return;
+    // Once configured, macOS owns the setting, including changes in System Settings.
+    if (status == SMAppServiceStatusEnabled || status == SMAppServiceStatusRequiresApproval || registerItem())
+        [defaults setBool:YES forKey:loginSetupKey];
+}
+
 static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *context) {
     if (type == kCGEventTapDisabledByTimeout || type == kCGEventTapDisabledByUserInput) {
         memset(held, 0, sizeof(held));
@@ -54,7 +63,7 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 
 #ifndef ARROWKEYS_TEST
 #import "KeyboardMapping.h"
-@interface Controller : NSObject <NSApplicationDelegate>
+@interface Controller : NSObject <NSApplicationDelegate, NSMenuDelegate>
 @property(strong) KeyboardMapping *keyboards;
 @property(strong) NSStatusItem *item;
 @property(strong) NSMenuItem *status;
@@ -104,8 +113,15 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     if (service.status == SMAppServiceStatusEnabled) [service unregisterAndReturnError:&error];
     else if (service.status == SMAppServiceStatusRequiresApproval) [SMAppService openSystemSettingsLoginItems];
     else [service registerAndReturnError:&error];
-    self.login.state = service.status == SMAppServiceStatusEnabled ? NSControlStateValueOn : NSControlStateValueOff;
     if (error) [NSApp presentError:error];
+    else [NSUserDefaults.standardUserDefaults setBool:YES forKey:loginSetupKey];
+    [self menuNeedsUpdate:self.item.menu];
+}
+- (void)menuNeedsUpdate:(NSMenu *)menu {
+    SMAppServiceStatus status = SMAppService.mainAppService.status;
+    self.login.title = status == SMAppServiceStatusRequiresApproval ? @"Open at Login (Approval Required…)" : @"Open at Login";
+    self.login.state = status == SMAppServiceStatusRequiresApproval ? NSControlStateValueMixed :
+                       status == SMAppServiceStatusEnabled ? NSControlStateValueOn : NSControlStateValueOff;
 }
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     self.keyboards = [KeyboardMapping new];
@@ -115,13 +131,23 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     [self.item.button setAccessibilityLabel:@"ArrowKeys"];
     self.item.button.toolTip = @"ArrowKeys";
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@"ArrowKeys"];
+    menu.delegate = self;
     self.status = [menu addItemWithTitle:@"ArrowKeys" action:nil keyEquivalent:@""];
     [menu addItemWithTitle:@"Accessibility Settings…" action:@selector(access:) keyEquivalent:@""].target = self;
     self.login = [menu addItemWithTitle:@"Open at Login" action:@selector(toggleLogin:) keyEquivalent:@""];
     self.login.target = self;
-    self.login.state = SMAppService.mainAppService.status == SMAppServiceStatusEnabled;
     [menu addItemWithTitle:@"Quit ArrowKeys" action:@selector(terminate:) keyEquivalent:@"q"].target = NSApp;
     self.item.menu = menu;
+    SMAppService *loginService = SMAppService.mainAppService;
+    configureLoginDefault(NSUserDefaults.standardUserDefaults, loginService.status, ^BOOL {
+        NSError *error = nil;
+        if ([loginService registerAndReturnError:&error] || loginService.status == SMAppServiceStatusRequiresApproval ||
+            error.code == kSMErrorLaunchDeniedByUser)
+            return YES;
+        NSLog(@"Open at Login registration failed: %@", error);
+        return NO;
+    });
+    [self menuNeedsUpdate:menu];
     // A menu-bar process can outlive its on-disk bundle when it is moved or deleted.
     int fd = open(NSBundle.mainBundle.bundlePath.fileSystemRepresentation, O_EVTONLY);
     if (fd >= 0) {
@@ -129,8 +155,12 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
             DISPATCH_VNODE_DELETE | DISPATCH_VNODE_RENAME | DISPATCH_VNODE_REVOKE, dispatch_get_main_queue());
         dispatch_source_set_event_handler(self.bundleWatcher, ^{
             SMAppService *login = SMAppService.mainAppService;
-            if (login.status == SMAppServiceStatusEnabled || login.status == SMAppServiceStatusRequiresApproval)
-                [login unregisterAndReturnError:NULL];
+            SMAppServiceStatus status = login.status;
+            if (status == SMAppServiceStatusEnabled || status == SMAppServiceStatusRequiresApproval) {
+                BOOL removed = [login unregisterAndReturnError:NULL];
+                if (removed && status == SMAppServiceStatusEnabled)
+                    [NSUserDefaults.standardUserDefaults removeObjectForKey:loginSetupKey];
+            }
             [NSApp terminate:nil];
         });
         dispatch_source_set_cancel_handler(self.bundleWatcher, ^{ close(fd); });

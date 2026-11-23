@@ -25,7 +25,9 @@ The native installer is about **1.1 MB** and supports Apple silicon and Intel. T
 
 **If the installer says “Not Opened”**, click **Done**. The package is unsigned and has no Apple notarization. After verifying your GitHub download, open **System Settings → Privacy & Security**, scroll to **Security**, and click **Open Anyway** for **ArrowKeys-macOS.pkg**. [Verify your download](#verify-a-download) · [Apple’s instructions](https://support.apple.com/en-us/102445)
 
-The installer opens ArrowKeys for the signed-in user. On first launch, enable **ArrowKeys** in **System Settings → Privacy & Security → Accessibility**. As soon as permission is available, ArrowKeys assigns Caps Lock to Option and its menu shows **Navigation active**. Keyboards attached later are configured automatically. If nobody was signed in during installation, open **Applications → ArrowKeys** after signing in. Select **Open at Login** in its menu to launch at future logins.
+The installer opens ArrowKeys for the signed-in user. On first launch, enable **ArrowKeys** in **System Settings → Privacy & Security → Accessibility**. As soon as permission is available, ArrowKeys assigns Caps Lock to Option and its menu shows **Navigation active**. Keyboards attached later are configured automatically. If nobody was signed in during installation, open **Applications → ArrowKeys** after signing in.
+
+**Open at Login** is on by default. ArrowKeys registers itself on first launch and starts automatically at subsequent sign-ins. To turn it off, uncheck **Open at Login** in the four-arrow menu. If the menu shows **Approval Required**, select that item to open the macOS Login Items settings.
 
 Caps Lock acts as **Option**, and either physical Option key also activates the shortcuts. **U/O** send **Command + Left/Right** and **H/;** send **Option + Left/Right**. The rule uses physical key positions, including the U.S. semicolon position immediately to the right of L. Holding a third modifier such as Shift leaves that chord to the app. A mapped Option chord takes precedence over typing its usual special character.
 

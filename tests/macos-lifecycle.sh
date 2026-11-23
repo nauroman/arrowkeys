@@ -35,6 +35,22 @@ for cycle in 1 2; do
     sleep 0.2
   done
   test -n "$pid"
+  # The app records setup after Service Management accepts the registration.
+  for ((i=0; i<50; i++)); do
+    login_configured=$(defaults read com.nauroman.ArrowKeys OpenAtLoginConfigured 2>/dev/null || true)
+    [[ "$login_configured" == 1 ]] && break
+    sleep 0.2
+  done
+  if [[ "$login_configured" != 1 ]]; then
+    echo 'ArrowKeys did not finish configuring Open at Login' >&2
+    /usr/bin/log show --last 2m --info --predicate 'process == "ArrowKeys" OR eventMessage CONTAINS[c] "com.nauroman.ArrowKeys"' | tail -100
+    exit 1
+  fi
+  sudo /usr/bin/sfltool dumpbtm > "$stage/login-items"
+  if ! grep -Fqi 'ArrowKeys' "$stage/login-items"; then
+    echo 'ArrowKeys was absent from the macOS background task database' >&2
+    exit 1
+  fi
   # Exercise the real menu-bar process while its bundle is removed from Applications.
   sleep 2
   sudo mv "$app" "$stage/removed-$cycle.app"
