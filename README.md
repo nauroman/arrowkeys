@@ -2,7 +2,7 @@
 
 **Move through text without reaching for the arrow keys.** Hold **Caps Lock** and use **J K L I** to move left, down, right and up. Jump by word or go to the start and end of a line with the nearby keys.
 
-A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a [Karabiner-Elements](https://karabiner-elements.pqrs.org/) rule on macOS implement the same eight movements.
+A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a native menu bar app on macOS implement the same eight movements.
 
 [![Installer builds, tests and ClamAV scan](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml)
 
@@ -11,11 +11,11 @@ A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a [Ka
 | Platform | Download | What to do |
 | --- | --- | --- |
 | Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey and starts ArrowKeys for your account. The sign-in shortcut is optional. |
-| macOS 13 or newer | [ArrowKeys-macOS.pkg](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg) | Double-click the package, then choose **Continue → Install**. It works offline, installs missing Karabiner components and enables ArrowKeys for the signed-in desktop user. |
+| macOS 13 or newer | [ArrowKeys-macOS.pkg](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg) | Double-click the package, then choose **Continue → Install**. Open ArrowKeys from Applications after installation. |
 
 Find the scan log and SHA-256 checksums on the [release page](https://github.com/nauroman/arrowkeys/releases/latest). You can also [verify the build provenance](#verify-a-download).
 
-On a fresh Mac, authorize the package in **Installer**, then open **Karabiner-Elements** in Applications and complete its permission prompts. Karabiner needs access to keyboard events and a virtual keyboard to send the remapped keys. These approvals require your interaction. [Karabiner setup guide](https://karabiner-elements.pqrs.org/docs/manual/misc/required-macos-settings/)
+Allow **ArrowKeys** in **System Settings → Privacy & Security → Accessibility**. Its menu shows **Navigation active** when ready. In **Keyboard → Keyboard Shortcuts → Modifier Keys**, select the keyboard and assign **Caps Lock** to **Option**. This system setting persists when the app quits. Repeat for any external keyboard. Select **Open at Login** in the ArrowKeys menu for automatic startup.
 
 Open a text editor and hold **Caps Lock**. **J/K/L/I** move left/down/right/up, **U/O** go to the beginning/end of a line, and **H/;** move by word. Release Caps Lock to resume typing.
 
@@ -25,9 +25,9 @@ Open a text editor and hold **Caps Lock**. **J/K/L/I** move left/down/right/up, 
 
 Caps Lock acts as **Option**, and either physical Option key also activates the shortcuts. **U/O** send **Command + Left/Right** and **H/;** send **Option + Left/Right**. The rule uses physical key positions, including the U.S. semicolon position immediately to the right of L. Holding a third modifier such as Shift leaves that chord to the app. A mapped Option chord takes precedence over typing its usual special character.
 
-The installer keeps other profiles and rules, and backs up an existing profile file before editing it. If the profile uses comments, a symbolic link or another unsupported format, the installer makes the rule available under **Karabiner-Elements → Complex Modifications → Add predefined rule → ArrowKeys → Enable**. To turn ArrowKeys off, remove its rule under **Complex Modifications**. [View the complete Mac rule](macos/arrowkeys.json)
+ArrowKeys processes eight physical key positions through a macOS event tap. Input-source shortcuts such as an existing Option + Shift binding pass through. Switching from the Karabiner edition? Remove its ArrowKeys rule in **Complex Modifications** to avoid two handlers processing the same shortcut. You can keep Karabiner for other rules.
 
-To uninstall, open **Applications → Uninstall ArrowKeys.command**. It removes the ArrowKeys rule from your profiles, removes the installed ArrowKeys files and forgets the package receipt. Other accounts can remove their own rule under **Complex Modifications**. Karabiner is shared with other keyboard rules. If you also want to remove Karabiner and its virtual keyboard, use its built-in uninstaller. You can reinstall ArrowKeys by reopening the same package. [Karabiner uninstall guide](https://karabiner-elements.pqrs.org/docs/manual/operation/uninstall/)
+To uninstall, turn off **Open at Login**, quit ArrowKeys, and move the app from Applications to Trash. Restore your previous Caps Lock assignment in **Modifier Keys**.
 
 ### Verify a download
 
@@ -40,7 +40,7 @@ gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
 gh attestation verify ArrowKeys-macOS.pkg --repo nauroman/arrowkeys
 ```
 
-The ArrowKeys installers have no publisher signatures, and the Mac package has no Apple notarization. macOS may show an unidentified-developer warning. During the build, GitHub verifies the pinned SHA-256, Gatekeeper result and developer identity of the official Karabiner package before copying its components. The [Windows hotkeys](arrowkeys.ahk) and [macOS rule](macos/arrowkeys.json) are available for inspection. [Release files and scan results](https://github.com/nauroman/arrowkeys/releases/latest)
+The ArrowKeys installers have no publisher signatures, and the Mac package has no Apple notarization. macOS may show an unidentified-developer warning. The [Windows hotkeys](arrowkeys.ahk) and [native macOS handler](macos/ArrowKeys.m) are available for inspection. [Release files and scan results](https://github.com/nauroman/arrowkeys/releases/latest)
 
 ### Windows setup from source
 
