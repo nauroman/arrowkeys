@@ -17,6 +17,12 @@ static const Binding bindings[] = {
 static bool held[sizeof(bindings) / sizeof(bindings[0])];
 static CFMachPortRef tap;
 
+static NSImage *menuBarIcon(void) {
+    NSImage *icon = [NSImage imageNamed:@"ArrowKeysMenuTemplate.svg"];
+    icon.template = YES;
+    return icon;
+}
+
 static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *context) {
     if (type == kCGEventTapDisabledByTimeout || type == kCGEventTapDisabledByUserInput) {
         memset(held, 0, sizeof(held));
@@ -104,9 +110,7 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     self.keyboards = [KeyboardMapping new];
     self.item = [NSStatusBar.systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
-    NSImage *icon = [[NSImage imageNamed:@"ArrowKeys"] copy];
-    icon.size = NSMakeSize(20, 20);
-    self.item.button.image = icon;
+    self.item.button.image = menuBarIcon();
     self.item.button.imagePosition = NSImageOnly;
     [self.item.button setAccessibilityLabel:@"ArrowKeys"];
     self.item.button.toolTip = @"ArrowKeys";

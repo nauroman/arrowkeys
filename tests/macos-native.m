@@ -48,6 +48,19 @@ int main(void) {
     @autoreleasepool {
         testKeyboardRestoration();
         [NSApplication sharedApplication];
+        NSImage *icon = menuBarIcon();
+        assert(icon.isTemplate && NSEqualSizes(icon.size, NSMakeSize(26, 18)));
+        CGImageRef rendered = [icon CGImageForProposedRect:NULL context:nil hints:nil];
+        assert(rendered);
+        NSBitmapImageRep *mask = [[NSBitmapImageRep alloc] initWithCGImage:rendered];
+        // Both center keys have a transparent arrow surrounded by a solid keycap.
+        NSInteger middle = mask.pixelsWide / 2;
+        for (NSInteger row = 1; row <= 3; row += 2) {
+            NSInteger y = mask.pixelsHigh * row / 4;
+            assert([mask colorAtX:middle y:y].alphaComponent < 0.15);
+            assert([mask colorAtX:mask.pixelsWide * 10 / 26 y:y].alphaComponent > 0.8);
+        }
+        puts("Loaded and rendered the branded menu bar template with transparent arrow cutouts.");
         NSTextView *text = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 640, 240)];
         text.font = [NSFont monospacedSystemFontOfSize:15 weight:NSFontWeightRegular];
         text.string = @"alpha bravo charlie\nsecond line here\nthird line here";

@@ -1,4 +1,4 @@
-# ArrowKeys
+# <img src="assets/ArrowKeys.png" width="48" alt=""> ArrowKeys
 
 **Move through text without reaching for the arrow keys.** Hold **Caps Lock** and use **J K L I** to move left, down, right and up. Jump by word or go to the start and end of a line with the nearby keys.
 

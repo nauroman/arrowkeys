@@ -23,6 +23,7 @@ for cycle in 1 2; do
   lipo "$app/Contents/MacOS/ArrowKeys" -verify_arch arm64 x86_64
   pkgutil --pkg-info com.nauroman.arrowkeys.native
   cmp "$repo/assets/ArrowKeys.icns" "$app/Contents/Resources/ArrowKeys.icns"
+  cmp "$repo/assets/ArrowKeysMenuTemplate.svg" "$app/Contents/Resources/ArrowKeysMenuTemplate.svg"
   test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIconFile' "$app/Contents/Info.plist")" = ArrowKeys.icns
   test ! -e /Applications/Karabiner-Elements.app
   # Only the package starts the app. Require the signed-in user to own it.
