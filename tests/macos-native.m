@@ -58,7 +58,7 @@ int main(void) {
         for (NSInteger row = 1; row <= 3; row += 2) {
             NSInteger y = mask.pixelsHigh * row / 4;
             assert([mask colorAtX:middle y:y].alphaComponent < 0.15);
-            assert([mask colorAtX:mask.pixelsWide * 10 / 26 y:y].alphaComponent > 0.8);
+            assert([mask colorAtX:mask.pixelsWide * 9 / 26 y:y].alphaComponent > 0.8);
         }
         puts("Loaded and rendered the branded menu bar template with transparent arrow cutouts.");
         NSTextView *text = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, 640, 240)];
