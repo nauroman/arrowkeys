@@ -9,7 +9,9 @@ cli='/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli'
 support='/Library/Application Support/ArrowKeys'
 uninstall='/Applications/Uninstall ArrowKeys.command'
 config="$HOME/.config/karabiner/karabiner.json"
-test ! -e "$cli" && test ! -e "$support" && test ! -e "$config"
+test ! -e "$cli"
+test ! -e "$support"
+test ! -e "$config"
 [[ "$(stat -f %Su /dev/console)" == "$(id -un)" ]]
 mkdir -p "$(dirname "$config")"
 echo '{"profiles":[{"name":"Work","selected":true,"complex_modifications":{"rules":[{"description":"Test F18 shortcut","manipulators":[{"type":"basic","from":{"key_code":"f18"},"to":[{"key_code":"f19"}]}]}]}},{"name":"Other"}]}' > "$config"
@@ -31,13 +33,17 @@ for cycle in 1 2; do
   mkdir "$stage/on-$cycle" "$stage/off-$cycle"
   (cd "$stage/on-$cycle"; python3 "$repo/tests/macos-events.py" "$stage/engine/run-events" "$config"; "$stage/cursor" cursor-events.json)
   "$uninstall" --yes
-  test ! -e "$support" && test ! -e "$uninstall" && test ! -e "$asset"
+  test ! -e "$support"
+  test ! -e "$uninstall"
+  test ! -e "$asset"
   if pkgutil --pkg-info com.nauroman.arrowkeys.profile; then exit 1; fi
   python3 -c 'import json,sys; assert json.load(open(sys.argv[1])) == json.load(open(sys.argv[2]))' "$config" "$stage/initial.json"
   (cd "$stage/off-$cycle"; python3 "$repo/tests/macos-events.py" "$stage/engine/run-events" "$config" removed)
   # Shared Karabiner remains usable until the user requests its own uninstaller.
   test -x "$cli"
   sudo bash '/Library/Application Support/org.pqrs/Karabiner-Elements/uninstall.sh'
-  test ! -e "$cli" && test ! -e /Applications/Karabiner-Elements.app && test ! -e /Applications/.Karabiner-VirtualHIDDevice-Manager.app
+  test ! -e "$cli"
+  test ! -e /Applications/Karabiner-Elements.app
+  test ! -e /Applications/.Karabiner-VirtualHIDDevice-Manager.app
   echo "Passed macOS installation, real AppKit cursor checks, uninstall and shared dependency removal (cycle $cycle)."
 done

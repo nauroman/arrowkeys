@@ -5,9 +5,15 @@ SetTitleMatchMode 2
 SendMode "Event"
 SendLevel 10
 SetKeyDelay 25, 25
+trace(message) {
+    FileAppend message "`n", A_Args[2], "UTF-8"
+}
+OnError((err, mode) => (trace(err.Message " at line " err.Line), ExitApp(3)))
+trace("Opening the test edit for " A_Args[1])
 window := Gui(, "ArrowKeys installation test")
 textBox := window.AddEdit("w480 r5 -Wrap", "alpha bravo charlie`r`nsecond line here`r`nthird line")
 window.Show()
+trace("Window created")
 WinActivate window
 if !WinWaitActive(window, , 5)
     ExitApp 2
@@ -47,6 +53,7 @@ try {
                 throw Error("Reference key did not move: " reference)
             for modifier in ["CapsLock", "LAlt", "RAlt"] {
                 before := textBox.Value
+                trace("Testing " modifier "+" key)
                 actual := move("{" modifier " down}" key "{" modifier " up}")
                 if actual != expected || textBox.Value != before
                     throw Error(modifier "+" key " moved to " actual ", expected " expected)
@@ -58,6 +65,7 @@ try {
             throw Error("Ordinary typing failed after releasing the modifier")
     }
 } catch as err {
+    trace(err.Message)
     FileAppend err.Message "`n", "*"
     ExitApp 1
 }
