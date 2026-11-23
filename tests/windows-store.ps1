@@ -17,6 +17,8 @@ if ($LASTEXITCODE) { throw 'Package signing failed' }
 Add-AppxPackage -Path $package
 $app = Get-AppxPackage -Name ArrowKeys.CI
 if (!$app) { throw 'Package registration failed' }
+$appModel = 'HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData'
+$startupTask = Join-Path $appModel "$($app.PackageFamilyName)\ArrowKeysStartup"
 try {
     Start-Process explorer.exe -ArgumentList ("shell:AppsFolder\{0}!ArrowKeys" -f $app.PackageFamilyName)
     for ($i = 0; $i -lt 60; $i++) {
@@ -27,6 +29,9 @@ try {
     if (!$proc -or $proc.Path -ne (Join-Path $app.InstallLocation 'ArrowKeys.exe')) { throw 'Packaged guide did not open' }
     $seen = Join-Path $env:LOCALAPPDATA "Packages\$($app.PackageFamilyName)\LocalState\guide-seen"
     if (!(Test-Path $seen)) { throw 'First-launch marker missing' }
+    $state = Get-ItemPropertyValue -LiteralPath $startupTask -Name State
+    if ($state -ne 2) { throw "Expected Windows to enable startup after first launch, got state $state" }
+    Write-Host 'Windows enabled the startup task on first launch.'
     Add-Type -AssemblyName System.Drawing
     Add-Type -TypeDefinition @'
 using System;
@@ -61,6 +66,7 @@ public class GuideCapture {
     Remove-AppxPackage -Package $app.PackageFullName
 }
 if (Get-AppxPackage -Name ArrowKeys.CI) { throw 'Store package survived uninstall' }
+if (Test-Path -LiteralPath $startupTask) { throw 'Store startup task registration survived uninstall' }
 if (Get-Process ArrowKeys -ErrorAction SilentlyContinue) { throw 'Store runtime survived uninstall' }
 if (Get-StartApps | Where-Object AppID -eq "$($app.PackageFamilyName)!ArrowKeys") { throw 'Store Start registration survived uninstall' }
 $removed = Join-Path $env:RUNNER_TEMP 'cursor-removed-msix.log'

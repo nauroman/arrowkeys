@@ -10,7 +10,7 @@ ArrowKeys runs as a native menu bar app on Mac and uses [AutoHotkey v2](https://
 
 | Platform | Download | What to do |
 | --- | --- | --- |
-| Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/download/windows-v1.1.1/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey and starts ArrowKeys for your account. The sign-in shortcut is optional. |
+| Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/download/windows-v1.1.1/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey, starts ArrowKeys for your account and creates a sign-in shortcut by default. |
 | macOS 13 or newer | [ArrowKeys-macOS.pkg](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg) | Double-click the package and choose **Continue → Install**. ArrowKeys starts in the menu bar. Allow **Accessibility** when prompted. |
 
 Find the scan log and SHA-256 checksums on the [release page for your platform](https://github.com/nauroman/arrowkeys/releases). You can also [verify the build provenance](#verify-a-download).

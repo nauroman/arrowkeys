@@ -22,7 +22,7 @@
         Square44x44Logo="Assets\Square44x44Logo.png" Square150x150Logo="Assets\Square150x150Logo.png" BackgroundColor="transparent"/>
       <Extensions>
         <desktop:Extension Category="windows.startupTask" Executable="ArrowKeys.exe" EntryPoint="Windows.FullTrustApplication">
-          <desktop:StartupTask TaskId="ArrowKeysStartup" Enabled="false" DisplayName="Arrow Keys"/>
+          <desktop:StartupTask TaskId="ArrowKeysStartup" Enabled="true" DisplayName="Arrow Keys"/>
         </desktop:Extension>
       </Extensions>
     </Application>

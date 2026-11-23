@@ -4,7 +4,7 @@ Build on Windows with the Windows SDK, PowerShell, Python and Pillow installed.
 Use the four values assigned to this app under **Partner Center → Product identity**.
 
 ```powershell
-.\packaging\build-store.ps1 -IdentityName '<Package/Identity/Name>' -Publisher '<Package/Identity/Publisher>' -PublisherDisplayName '<publisher display name>' -DisplayName 'Arrow Keys' -Version 1.1.1.0
+.\packaging\build-store.ps1 -IdentityName '<Package/Identity/Name>' -Publisher '<Package/Identity/Publisher>' -PublisherDisplayName '<publisher display name>' -DisplayName 'Arrow Keys' -Version 1.1.2.0
 ```
 
 The unsigned submission package and 300 × 300 listing logo are written to
@@ -15,7 +15,9 @@ Tag a Windows-only release as `windows-vX.Y.Z` to publish the verified standalon
 
 Hold Caps Lock to move through text with the letter keys. Use I, J, K and L to move up, left, down and right. U and O take you to the start and end of a line. H and the semicolon key move one word at a time.
 
-Open Arrow Keys and try the shortcuts in its built-in guide. Close the guide to keep navigating in your editor. Double-click the tray icon to bring the guide back, or choose Exit Arrow Keys to restore normal Caps Lock behavior. You can also enable Arrow Keys in Windows Settings → Apps → Startup.
+Open Arrow Keys once after installing it. Windows will then start it automatically whenever you sign in. You can turn this off in Settings → Apps → Startup.
+
+Try the shortcuts in the built-in guide, then hide it to keep navigating in your editor. Double-click the tray icon to bring the guide back, or choose Exit Arrow Keys to restore normal Caps Lock behavior for the rest of the session.
 
 The Windows edition works offline and includes the AutoHotkey runtime.
 
