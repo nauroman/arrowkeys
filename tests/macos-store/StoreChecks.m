@@ -41,14 +41,21 @@ static int receiveShortcuts(void) {
 }
 
 // Only the disposable runner's test driver synthesizes Option and the eight letters.
-static int driveReceiver(void) {
+static int driveReceiver(NSString *bundleID) {
     NSDictionary *env = NSProcessInfo.processInfo.environment;
+    NSArray *fixtureApps = @[@"com.apple.TextEdit", @"com.apple.Safari", @"com.apple.dt.Xcode"];
     if (![env[@"RUNNER_ENVIRONMENT"] isEqual:@"github-hosted"] || ![env[@"GITHUB_ACTIONS"] isEqual:@"true"] ||
-        !CGPreflightPostEventAccess()) return 77;
+        ![fixtureApps containsObject:bundleID] || !CGPreflightPostEventAccess()) return 77;
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:25];
+    while (![NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier isEqual:bundleID] && deadline.timeIntervalSinceNow > 0)
+        [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.15]];
     for (NSUInteger i = 0; i < bindingCount; ++i) {
-        if (![NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier isEqual:@"com.apple.TextEdit"]) return 2;
         const CGKeyCode keys[] = {kVK_Option, bindings[i].input, bindings[i].input, kVK_Option};
         for (int j = 0; j < 4; ++j) {
+            if (![NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier isEqual:bundleID]) {
+                fprintf(stderr, "Test fixture application lost focus: %s\n", bundleID.UTF8String);
+                return 2;
+            }
             CGEventRef event = CGEventCreateKeyboardEvent(NULL, keys[j], j < 2);
             if (j == 0 || j == 3) CGEventSetType(event, kCGEventFlagsChanged);
             CGEventSetFlags(event, j == 3 ? 0 : kCGEventFlagMaskAlternate);
@@ -152,6 +159,12 @@ static int checkSafari(const char *path, const char *runID) {
 
 int main(int argc, const char **argv) {
     @autoreleasepool {
+        if (argc == 3 && strcmp(argv[1], "--drive") == 0) {
+            [NSApplication sharedApplication];
+            [NSApp setActivationPolicy:NSApplicationActivationPolicyProhibited];
+            [NSApp finishLaunching];
+            return driveReceiver([NSString stringWithUTF8String:argv[2]]);
+        }
         if (argc == 5 && strcmp(argv[1], "--compare-editors") == 0)
             return compareEditors(readTestFile(argv[2]), readTestFile(argv[3]), readTestFile(argv[4]));
         if (argc == 4 && strcmp(argv[1], "--check-safari") == 0) return checkSafari(argv[2], argv[3]);
@@ -166,7 +179,6 @@ int main(int argc, const char **argv) {
         [NSApp setActivationPolicy:NSApplicationActivationPolicyProhibited];
         [NSApp finishLaunching];
         if (strcmp(argv[1], "--receive") == 0) return receiveShortcuts();
-        if (strcmp(argv[1], "--drive") == 0) return driveReceiver();
         return 2;
     }
 }

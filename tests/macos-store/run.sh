@@ -56,14 +56,21 @@ cp "$stage/Removed.app/Contents/Info.plist" "$receiver/Contents/"
     -c 'Set :CFBundleExecutable StoreChecks' "$receiver/Contents/Info.plist"
 cp "$kit/StoreChecks" "$receiver/Contents/MacOS/"
 codesign --force --sign - --entitlements "$repo/packaging/mac-app-store/ArrowKeys.entitlements" "$receiver"
-open -g -n --stdout "$stage/receiver.log" --stderr "$stage/receiver.err" "$receiver" --args --receive
-for ((i=0;i<60;i++)); do grep -q READY "$stage/receiver.log" 2>/dev/null && break; sleep 0.25; done
-if ! grep -q READY "$stage/receiver.log"; then cat "$stage/receiver.err" >&2; exit 1; fi
+check_delivery() {
+    local target=$1 fixture=$2 log="$stage/$1.log"
+    open -b "$target" "$fixture"
+    open -g -n --stdout "$log" --stderr "$log.err" "$receiver" --args --receive
+    for ((i=0;i<60;i++)); do grep -q READY "$log" 2>/dev/null && break; sleep 0.25; done
+    if ! grep -q READY "$log"; then cat "$log.err" >&2; exit 1; fi
+    "$kit/StoreChecks" --drive "$target"
+    for ((i=0;i<60;i++)); do grep -q released= "$log" && break; sleep 0.25; done
+    echo "Shortcut registration with $target in front"
+    cat "$log"
+    grep -q 'pressed=0xff released=0xff' "$log"
+}
 cp "$src_fixture" "$stage/TextEdit.txt"
-open -a TextEdit "$stage/TextEdit.txt"
-sleep 2
-"$kit/StoreChecks" --drive
-for ((i=0;i<60;i++)); do grep -q released= "$stage/receiver.log" && break; sleep 0.25; done
-cat "$stage/receiver.log"
-grep -q 'pressed=0xff released=0xff' "$stage/receiver.log"
+cp "$src_fixture" "$stage/Xcode.txt"
+check_delivery com.apple.TextEdit "$stage/TextEdit.txt"
+check_delivery com.apple.Safari "$src/browser.html"
+check_delivery com.apple.dt.Xcode "$stage/Xcode.txt"
 echo 'Passed sandbox shortcut delivery and removal before consent. Physical Caps Lock acceptance is a separate MacBook check.'
