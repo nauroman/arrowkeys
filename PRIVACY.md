@@ -5,3 +5,5 @@ ArrowKeys processes keyboard input on your PC to turn its shortcuts into cursor 
 The Microsoft Store edition saves a local flag after it first shows the shortcut guide. Windows manages the optional startup setting and removes the app's local package data when you uninstall it.
 
 You can ask questions through the project's [support page](https://github.com/nauroman/arrowkeys/issues).
+
+Choosing a GitHub link opens your web browser. GitHub handles that visit under its own privacy policy.

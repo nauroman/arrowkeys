@@ -59,6 +59,16 @@ $makeAppx = Get-ChildItem -LiteralPath $sdkRoot -Directory | Where-Object { $_.N
     Sort-Object { [version]$_.Name } -Descending | ForEach-Object { Join-Path $_.FullName 'x64\makeappx.exe' } |
     Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 if (!$makeAppx) { throw 'Install the Windows 10 or 11 SDK with MakeAppx.' }
+$makePri = Join-Path (Split-Path $makeAppx) 'makepri.exe'
+$config = Join-Path $work 'store-priconfig.xml'
+& $makePri createconfig /cf $config /dq en-US /o
+if ($LASTEXITCODE) { throw 'Resource index configuration failed.' }
+# Every display scale ships in the same MSIX.
+[xml]$indexConfig = Get-Content -LiteralPath $config -Raw
+[void]$indexConfig.DocumentElement.RemoveChild($indexConfig.resources.packaging)
+$indexConfig.Save($config)
+& $makePri new /pr $stage /cf $config /of (Join-Path $stage 'resources.pri') /o
+if ($LASTEXITCODE) { throw 'Indexing the Windows icon sizes failed.' }
 $package = Join-Path $output ("{0}_{1}_x86.msix" -f $IdentityName,$Version)
 & $makeAppx pack /d $stage /p $package /o
 if ($LASTEXITCODE) { throw 'MSIX packaging failed.' }

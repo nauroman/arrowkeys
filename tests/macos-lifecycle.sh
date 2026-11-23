@@ -12,6 +12,10 @@ snapshot_keyboard() {
   /usr/bin/defaults -currentHost read -g | grep -A 12 'modifiermapping' || true
 }
 snapshot_keyboard > "$stage/keyboard-before"
+pkgutil --expand "$1" "$stage/expanded"
+welcome=$(find "$stage/expanded/Resources" -name 'welcome.rtf' -print -quit)
+grep -Fq 'HYPERLINK "https://github.com/nauroman/arrowkeys"' "$welcome"
+grep -Fq 'HYPERLINK "https://github.com/nauroman/arrowkeys/releases/latest"' "$welcome"
 test ! -e "$app"
 for cycle in 1 2; do
   sudo installer -pkg "$1" -target /

@@ -4,6 +4,12 @@ $dir = Join-Path $env:LOCALAPPDATA 'Programs\ArrowKeys'
 $runtime = Join-Path $dir 'ArrowKeys.exe'
 $script = Join-Path $dir 'arrowkeys.ahk'
 $startup = Join-Path ([Environment]::GetFolderPath('Startup')) 'ArrowKeys.lnk'
+$controlLink = Join-Path ([Environment]::GetFolderPath('Startup')) ('ArrowKeys-test-unrelated-' + [guid]::NewGuid() + '.lnk')
+$shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($controlLink)
+$shortcut.TargetPath = Join-Path $env:WINDIR 'System32\notepad.exe'
+$shortcut.Save()
+$controlHash = (Get-FileHash $controlLink).Hash
+trap { Remove-Item -LiteralPath $controlLink -ErrorAction SilentlyContinue; throw $_ }
 $probeHost = Join-Path $env:RUNNER_TEMP 'ArrowKeys-cursor-probe.exe'
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 & $compiler /nologo /target:winexe "/out:$probeHost" "$PSScriptRoot\WindowsCursor.cs"
@@ -36,4 +42,6 @@ for ($cycle = 1; $cycle -le 2; $cycle++) {
     if ($uninstall.ExitCode -ne 0 -or (Test-Path $startup) -or (Test-Path $runtime) -or (Test-Path $script)) { throw 'Uninstall failed' }
     if (Get-Process ArrowKeys -ErrorAction SilentlyContinue) { throw 'The remapper survived uninstall' }
     Test-Cursor removed
+    if ((Get-FileHash $controlLink).Hash -ne $controlHash) { throw 'An unrelated startup shortcut changed' }
 }
+Remove-Item -LiteralPath $controlLink

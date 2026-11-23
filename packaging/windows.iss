@@ -1,14 +1,15 @@
 [Setup]
 AppId=nauroman.ArrowKeys
 AppName=ArrowKeys
-AppVersion=1.0.2
+AppVersion=1.1.1
 AppPublisher=Roman Naumov
 AppPublisherURL=https://github.com/nauroman/arrowkeys
+AppUpdatesURL=https://github.com/nauroman/arrowkeys/releases/latest
 DefaultDirName={localappdata}\Programs\ArrowKeys
 PrivilegesRequired=lowest
 DisableDirPage=yes
 DisableProgramGroupPage=yes
-DisableWelcomePage=yes
+DisableWelcomePage=no
 SetupIconFile=..\assets\ArrowKeys.ico
 UninstallDisplayIcon={app}\ArrowKeys.ico
 Compression=lzma2
@@ -38,3 +39,29 @@ Filename: "{app}\ArrowKeys.exe"; Parameters: """{app}\arrowkeys.ahk"""; Flags: n
 
 [UninstallRun]
 Filename: "{app}\ArrowKeys.exe"; Parameters: "/restart ""{app}\arrowkeys.ahk"" --stop"; Flags: runhidden waituntilterminated skipifdoesntexist; RunOnceId: "StopArrowKeys"
+
+[Code]
+procedure OpenProjectLink(Sender: TObject; const Link: string; LinkType: TSysLinkType);
+var
+  ErrorCode: Integer;
+begin
+  if LinkType = sltURL then
+    ShellExecAsOriginalUser('open', Link, '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+end;
+
+procedure InitializeWizard;
+var
+  Info: TNewLinkLabel;
+begin
+  Info := TNewLinkLabel.Create(WizardForm);
+  Info.Parent := WizardForm.WelcomeLabel2.Parent;
+  Info.AutoSize := False;
+  Info.SetBounds(WizardForm.WelcomeLabel2.Left, WizardForm.WelcomeLabel2.Top,
+                 WizardForm.WelcomeLabel2.Width, WizardForm.WelcomeLabel2.Height);
+  WizardForm.WelcomeLabel2.Visible := False;
+  Info.Caption := 'ArrowKeys lets you move through text with Caps Lock and the letter keys.' + #13#10#13#10 +
+    'You can <a href="https://github.com/nauroman/arrowkeys">review the source code on GitHub</a> or ' +
+    '<a href="https://github.com/nauroman/arrowkeys/releases/latest">download the installers and SHA-256 checksums</a> to verify your copy.';
+  Info.AdjustHeight;
+  Info.OnLinkClick := @OpenProjectLink;
+end;

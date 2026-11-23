@@ -51,6 +51,7 @@ ShowGuide(*) {
         window.SetFont("s11 Norm")
         sample := window.AddEdit("w560 r2", "Hold Caps Lock and tap H to move back one word.")
         window.AddText("w560", "To stop remapping, choose Exit ArrowKeys from the system tray.")
+        window.AddLink("w560", 'On GitHub you can <a href="https://github.com/nauroman/arrowkeys">review the source</a> or <a href="https://github.com/nauroman/arrowkeys/releases/latest">download installers and SHA-256 checksums</a>.')
         window.AddButton("xm w130 Default", "Hide guide").OnEvent("Click", (*) => window.Hide())
         window.OnEvent("Close", (*) => window.Hide())
         window.OnEvent("Escape", (*) => window.Hide())
