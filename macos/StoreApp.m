@@ -1,7 +1,7 @@
 #import "StoreHotKeys.h"
 #import "KeyboardMapping.h"
+#import "BundleRemoval.h"
 #import <ServiceManagement/ServiceManagement.h>
-#include <fcntl.h>
 #include <signal.h>
 
 @interface StoreApp : NSObject <NSApplicationDelegate, NSMenuDelegate>
@@ -130,12 +130,7 @@
 - (void)focusChanged:(NSNotification *)note { [_hotKeys cancelRepeat]; }
 
 - (void)watchBundle {
-    int fd = open(NSBundle.mainBundle.bundlePath.fileSystemRepresentation, O_EVTONLY);
-    if (fd < 0) return;
-    _bundleWatcher = dispatch_source_create(DISPATCH_SOURCE_TYPE_VNODE, fd,
-        DISPATCH_VNODE_DELETE | DISPATCH_VNODE_RENAME | DISPATCH_VNODE_REVOKE, dispatch_get_main_queue());
-    if (!_bundleWatcher) { close(fd); return; }
-    dispatch_source_set_event_handler(_bundleWatcher, ^{
+    _bundleWatcher = watchBundleRemoval(^{
         self->_ending = YES;
         [self stopNavigation];
         SMAppService *login = SMAppService.mainAppService;
@@ -143,8 +138,6 @@
             [login unregisterAndReturnError:NULL];
         [NSApp terminate:nil];
     });
-    dispatch_source_set_cancel_handler(_bundleWatcher, ^{ close(fd); });
-    dispatch_resume(_bundleWatcher);
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
@@ -186,6 +179,21 @@
     [self stopNavigation];
     if (_bundleWatcher) dispatch_source_cancel(_bundleWatcher);
     if (_termination) dispatch_source_cancel(_termination);
+}
+
+- (void)retryRestoreBeforeQuit:(NSUInteger)attempts {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_MSEC * 250), dispatch_get_main_queue(), ^{
+        if ([self->_keyboards restore] || attempts == 1) [NSApp replyToApplicationShouldTerminate:YES];
+        else [self retryRestoreBeforeQuit:attempts - 1];
+    });
+}
+
+- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender {
+    _ending = YES;
+    [self stopNavigation];
+    if (!_restorePending) return NSTerminateNow;
+    [self retryRestoreBeforeQuit:8];
+    return NSTerminateLater;
 }
 @end
 

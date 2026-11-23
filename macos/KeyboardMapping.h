@@ -117,7 +117,8 @@ static const uint64_t caps = 0x700000039, option = 0x7000000e2;
     }
     _connectedKeyboards = connected.count;
     // A disconnected device loses its temporary mapping. Its new service has a new ID.
-    for (id key in _snapshots.allKeys) if (![connected containsObject:key]) {
+    // Keep the recovery record if the service list is temporarily empty.
+    for (id key in _snapshots.allKeys) if (connected.count && ![connected containsObject:key]) {
         [_snapshots removeObjectForKey:key];
         [self saveSnapshots];
     }

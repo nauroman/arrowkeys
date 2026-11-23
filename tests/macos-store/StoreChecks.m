@@ -1,6 +1,7 @@
 // The receiver checks the production Carbon registrations without posting events to another app.
 #import "../../macos/StoreHotKeys.h"
 #import "../../macos/KeyboardMapping.h"
+#import "../../macos/BundleRemoval.h"
 #import <Security/Security.h>
 #include <assert.h>
 
@@ -84,9 +85,9 @@ static void testRecovery(void) {
     puts("Recovered the previous Caps Lock assignment after relaunch.");
 }
 
-static int keyboardState(void) {
+static NSDictionary *readKeyboardState(void) {
     IOHIDEventSystemClientRef client = IOHIDEventSystemClientCreateSimpleClient(NULL);
-    if (!client) return 2;
+    if (!client) return nil;
     NSArray *services = CFBridgingRelease(IOHIDEventSystemClientCopyServices(client));
     NSMutableDictionary *state = [NSMutableDictionary new];
     for (id item in services) {
@@ -97,11 +98,48 @@ static int keyboardState(void) {
         state[key.stringValue] = CFBridgingRelease(IOHIDServiceClientCopyProperty(device, CFSTR("UserKeyMapping"))) ?: @[];
     }
     CFRelease(client);
+    return state;
+}
+
+static int keyboardState(void) {
+    NSDictionary *state = readKeyboardState();
+    if (!state.count) return 2;
     NSData *json = [NSJSONSerialization dataWithJSONObject:state options:NSJSONWritingSortedKeys error:NULL];
-    if (!json || !state.count) return 2;
+    if (!json) return 2;
     fwrite(json.bytes, 1, json.length, stdout);
     putchar('\n');
     return 0;
+}
+
+// Only invoked by the hosted workflow on its disposable login session. No keyboard events are posted.
+static int checkLiveRemoval(void) {
+    if (![NSBundle.mainBundle.bundleIdentifier isEqual:@"com.nauroman.ArrowKeys.Store.RegistrationCheck"]) return 2;
+    NSDictionary *before = readKeyboardState();
+    if (!before.count) { puts("NO_KEYBOARD: no keyboard service visible in this sandbox."); return 77; }
+    KeyboardMapping *mapping = [KeyboardMapping new];
+    __block BOOL removed = NO, restored = NO;
+    dispatch_source_t watch = watchBundleRemoval(^{
+        restored = [mapping restore];
+        removed = YES;
+    });
+    if (!watch) return 2;
+    if (![mapping refresh]) {
+        BOOL clean = [mapping restore] && [before isEqual:readKeyboardState()];
+        printf("MAPPING_UNAVAILABLE: macOS declined the device assignment. Baseline restored: %s\n", clean ? "yes" : "no");
+        return clean ? 77 : 1;
+    }
+    NSDictionary *applied = readKeyboardState();
+    if (!applied.count || [before isEqual:applied]) { [mapping restore]; return 2; }
+    puts("APPLIED: sandbox keyboard mapping read back; waiting for bundle removal");
+    fflush(stdout);
+    NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:25];
+    while (!removed && deadline.timeIntervalSinceNow > 0)
+        [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
+    if (!removed) [mapping restore];
+    dispatch_source_cancel(watch);
+    BOOL ok = removed && restored && [before isEqual:readKeyboardState()];
+    puts(ok ? "RESTORED: live keyboard assignments match after removal" : "FAIL: removal or keyboard restoration");
+    return ok ? 0 : 1;
 }
 
 static NSString *readTestFile(const char *path) {
@@ -178,6 +216,7 @@ int main(int argc, const char **argv) {
         [NSApplication sharedApplication];
         [NSApp setActivationPolicy:NSApplicationActivationPolicyProhibited];
         [NSApp finishLaunching];
+        if (strcmp(argv[1], "--live-removal") == 0) return checkLiveRemoval();
         if (strcmp(argv[1], "--receive") == 0) return receiveShortcuts();
         return 2;
     }

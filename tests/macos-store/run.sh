@@ -73,4 +73,18 @@ cp "$src_fixture" "$stage/Xcode.txt"
 check_delivery com.apple.TextEdit "$stage/TextEdit.txt"
 check_delivery com.apple.Safari "$src/browser.html"
 check_delivery com.apple.dt.Xcode "$stage/Xcode.txt"
+log="$stage/live-removal.log"
+open -g -n --stdout "$log" --stderr "$log.err" "$receiver" --args --live-removal
+for ((i=0;i<60;i++)); do grep -Eq 'APPLIED:|NO_KEYBOARD:|MAPPING_UNAVAILABLE:' "$log" 2>/dev/null && break; sleep 0.25; done
+if grep -q '^APPLIED:' "$log"; then
+    mv "$receiver" "$stage/Removed Keyboard Check.app"
+    for ((i=0;i<60;i++)); do grep -q '^RESTORED:' "$log" && break; sleep 0.25; done
+    cat "$log"
+    grep -q '^RESTORED:' "$log"
+elif grep -Eq '^NO_KEYBOARD:|^MAPPING_UNAVAILABLE:.*Baseline restored: yes' "$log"; then
+    cat "$log"
+    echo 'Live device assignment requires a physical acceptance run.'
+else
+    cat "$log" "$log.err" >&2; exit 1
+fi
 echo 'Passed sandbox shortcut delivery and removal before consent. Physical Caps Lock acceptance is a separate MacBook check.'
