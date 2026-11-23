@@ -11,11 +11,11 @@ A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a [Ka
 | Platform | Download | What to do |
 | --- | --- | --- |
 | Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey and starts ArrowKeys for your account. The sign-in shortcut is optional. |
-| macOS 13 or newer | [ArrowKeys-macOS.zip](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.zip) | Open the ZIP and double-click **Install ArrowKeys.command**. It installs Karabiner-Elements if needed and enables ArrowKeys in your selected profile. |
+| macOS 13 or newer | [ArrowKeys-macOS.pkg](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg) | Double-click the package, then choose **Continue → Install**. It works offline, installs missing Karabiner components and enables ArrowKeys for the signed-in desktop user. |
 
 Find the scan log and SHA-256 checksums on the [release page](https://github.com/nauroman/arrowkeys/releases/latest). You can also [verify the build provenance](#verify-a-download).
 
-On a fresh Mac, approve the administrator prompt for the official Karabiner package and complete its **Settings** permission prompts. Karabiner needs access to keyboard events and a virtual keyboard to send the remapped keys. These approvals require your interaction. [Karabiner setup guide](https://karabiner-elements.pqrs.org/docs/manual/misc/required-macos-settings/)
+On a fresh Mac, authorize the package in **Installer**, then open **Karabiner-Elements** in Applications and complete its permission prompts. Karabiner needs access to keyboard events and a virtual keyboard to send the remapped keys. These approvals require your interaction. [Karabiner setup guide](https://karabiner-elements.pqrs.org/docs/manual/misc/required-macos-settings/)
 
 Open a text editor and hold **Caps Lock**. **J/K/L/I** move left/down/right/up, **U/O** go to the beginning/end of a line, and **H/;** move by word. Release Caps Lock to resume typing.
 
@@ -35,10 +35,10 @@ You can verify the exact downloaded bytes against GitHub's signed build record w
 
 ```shell
 gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
-gh attestation verify ArrowKeys-macOS.zip --repo nauroman/arrowkeys
+gh attestation verify ArrowKeys-macOS.pkg --repo nauroman/arrowkeys
 ```
 
-ArrowKeys' Windows installer has no publisher signature, and its Mac launcher has no Apple notarization. The Mac launcher checks the pinned SHA-256 and asks Gatekeeper to verify the official Karabiner installer before requesting administrator privileges. The [Windows hotkeys](arrowkeys.ahk) and [macOS rule](macos/arrowkeys.json) are available for inspection. [Release files and scan results](https://github.com/nauroman/arrowkeys/releases/latest)
+The ArrowKeys installers have no publisher signatures, and the Mac package has no Apple notarization. macOS may show an unidentified-developer warning. During the build, GitHub verifies the pinned SHA-256, Gatekeeper result and developer identity of the official Karabiner package before copying its components. The [Windows hotkeys](arrowkeys.ahk) and [macOS rule](macos/arrowkeys.json) are available for inspection. [Release files and scan results](https://github.com/nauroman/arrowkeys/releases/latest)
 
 ### Windows setup from source
 
