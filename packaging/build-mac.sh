@@ -17,7 +17,7 @@ codesign --force --sign - --identifier com.nauroman.ArrowKeys "$app"
 mkdir "$stage/scripts"
 install -m 755 "$repo/packaging/macos-postinstall" "$stage/scripts/postinstall"
 pkgbuild --root "$stage/payload" --scripts "$stage/scripts" --install-location /Applications \
-  --identifier com.nauroman.arrowkeys.native --version 1.1.2 "$stage/ArrowKeysApp.pkg"
+  --identifier com.nauroman.arrowkeys.native --version 1.1.3 "$stage/ArrowKeysApp.pkg"
 cp -R "$repo/packaging/mac-resources" "$stage/resources"
 sips -Z 128 "$repo/assets/ArrowKeys.png" --out "$stage/resources/ArrowKeys.png" >/dev/null
 productbuild --distribution "$repo/packaging/macos-distribution.xml" --resources "$stage/resources" \

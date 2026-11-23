@@ -3,6 +3,27 @@
 #import "../macos/KeyboardMapping.h"
 #include <assert.h>
 
+static void testOpenAtLoginDefault(void) {
+    NSString *suite = [@"ArrowKeysTests." stringByAppendingString:NSUUID.UUID.UUIDString];
+    NSUserDefaults *settings = [[NSUserDefaults alloc] initWithSuiteName:suite];
+    __block unsigned calls = 0;
+    BOOL (^enable)(void) = ^BOOL { ++calls; return YES; };
+    configureLoginDefault(settings, SMAppServiceStatusNotRegistered, ^BOOL { return NO; });
+    assert(![settings boolForKey:loginSetupKey]);
+    configureLoginDefault(settings, SMAppServiceStatusNotRegistered, enable);
+    assert(calls == 1 && [settings boolForKey:loginSetupKey]);
+    // macOS reports NotRegistered again after the user turns off Open at Login.
+    configureLoginDefault(settings, SMAppServiceStatusNotRegistered, enable);
+    assert(calls == 1);
+    for (NSNumber *prior in @[@(SMAppServiceStatusEnabled), @(SMAppServiceStatusRequiresApproval)]) {
+        [settings removeObjectForKey:loginSetupKey];
+        configureLoginDefault(settings, prior.integerValue, enable);
+        assert(calls == 1 && [settings boolForKey:loginSetupKey]);
+    }
+    [settings removePersistentDomainForName:suite];
+    puts("Open at Login defaults on once, preserves opt-outs and leaves approval to macOS.");
+}
+
 static void testKeyboardRestoration(void) {
     KeyboardMapping *mapping = [KeyboardMapping new];
     NSDictionary *capsToControl = @{sourceKey:@(caps), destinationKey:@(0x7000000e0)};
@@ -47,6 +68,7 @@ static NSEvent *sendKey(CGKeyCode key, CGEventType type, CGEventFlags flags, boo
 int main(void) {
     @autoreleasepool {
         testKeyboardRestoration();
+        testOpenAtLoginDefault();
         [NSApplication sharedApplication];
         NSImage *icon = menuBarIcon();
         assert(icon.isTemplate && NSEqualSizes(icon.size, NSMakeSize(26, 18)));

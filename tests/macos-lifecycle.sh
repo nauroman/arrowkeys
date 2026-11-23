@@ -35,6 +35,15 @@ for cycle in 1 2; do
     sleep 0.2
   done
   test -n "$pid"
+  # The app records setup after Service Management accepts the registration.
+  for ((i=0; i<50; i++)); do
+    login_configured=$(defaults read com.nauroman.ArrowKeys OpenAtLoginConfigured 2>/dev/null || true)
+    [[ "$login_configured" == 1 ]] && break
+    sleep 0.2
+  done
+  test "$login_configured" = 1
+  /usr/bin/sfltool dumpbtm > "$stage/login-items"
+  grep -Fqi 'com.nauroman.ArrowKeys' "$stage/login-items"
   # Exercise the real menu-bar process while its bundle is removed from Applications.
   sleep 2
   sudo mv "$app" "$stage/removed-$cycle.app"

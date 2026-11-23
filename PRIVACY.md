@@ -4,6 +4,8 @@
 
 The native menu bar app uses Accessibility permission to recognize the navigation shortcuts. It processes key events locally and keeps each keyboard’s previous Caps Lock assignment in memory so it can restore that assignment when it quits. ArrowKeys does not record typed text or send keyboard events to a server.
 
+The app stores a local preference after setting up Open at Login. This lets you turn automatic startup off without ArrowKeys enabling it again on the next launch.
+
 ## Windows
 
 ArrowKeys processes keyboard input on your PC to turn its shortcuts into cursor movements. The app does not record what you type, collect personal information, send telemetry, display ads or use the network. Text entered in the shortcut guide is held in memory and disappears when the app exits.
