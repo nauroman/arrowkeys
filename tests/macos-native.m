@@ -3,6 +3,19 @@
 #import "../macos/KeyboardMapping.h"
 #include <assert.h>
 
+static void testAccessibilitySetup(void) {
+    NSString *suite = [@"ArrowKeysTests." stringByAppendingString:NSUUID.UUID.UUIDString];
+    NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:suite];
+    assert(!offerAccessibilitySetup(defaults, @"113", YES));
+    assert(offerAccessibilitySetup(defaults, @"113", NO));
+    assert(!offerAccessibilitySetup(defaults, @"113", NO));
+    assert(offerAccessibilitySetup(defaults, @"114", NO));
+    assert(!offerAccessibilitySetup(defaults, @"114", NO));
+    assert(!offerAccessibilitySetup(defaults, @"115", YES));
+    [defaults removePersistentDomainForName:suite];
+    puts("Accessibility setup appears once per build needing access, including after an update.");
+}
+
 static void testOpenAtLoginDefault(void) {
     NSString *suite = [@"ArrowKeysTests." stringByAppendingString:NSUUID.UUID.UUIDString];
     NSUserDefaults *settings = [[NSUserDefaults alloc] initWithSuiteName:suite];
@@ -38,11 +51,16 @@ static void testKeyboardRestoration(void) {
     assert(([current isEqual:@[other, capsToOption]]));
     assert([mapping updateKeyboard:@1 current:current restoring:YES write:write]);
     assert([current isEqual:before]);
+    // Reconnect after permission loss and retry a failed restore.
+    assert([mapping updateKeyboard:@1 current:current restoring:NO write:write]);
+    assert(([current isEqual:@[other, capsToOption]]));
+    assert(![mapping updateKeyboard:@1 current:current restoring:YES write:^BOOL(NSArray *unused) { return NO; }]);
     // Preserve new unrelated assignments made after ArrowKeys launched.
     current = @[newOther, capsToOption];
     assert([mapping updateKeyboard:@1 current:current restoring:YES write:write]);
     assert(([current isEqual:@[newOther, capsToControl]]));
     // Do not overwrite a later user change to Caps on refresh or removal.
+    assert([mapping updateKeyboard:@1 current:current restoring:NO write:write]);
     assert([mapping updateKeyboard:@1 current:@[newOther] restoring:NO write:neverWrite]);
     assert([mapping updateKeyboard:@1 current:@[newOther] restoring:YES write:neverWrite]);
     // A second keyboard already configured by its owner is never claimed.
@@ -67,6 +85,7 @@ static NSEvent *sendKey(CGKeyCode key, CGEventType type, CGEventFlags flags, boo
 
 int main(void) {
     @autoreleasepool {
+        testAccessibilitySetup();
         testKeyboardRestoration();
         testOpenAtLoginDefault();
         [NSApplication sharedApplication];

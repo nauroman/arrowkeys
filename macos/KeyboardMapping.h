@@ -32,9 +32,11 @@ static const uint64_t caps = 0x700000039, option = 0x7000000e2;
     current = current ?: @[];
     NSDictionary *desired = @{sourceKey:@(caps), destinationKey:@(option)};
     id snapshot = _snapshots[registryID];
-    if (restoring && (!snapshot || snapshot == NSNull.null)) return YES;
+    if (restoring && (!snapshot || snapshot == NSNull.null)) {
+        [_snapshots removeObjectForKey:registryID];
+        return YES;
+    }
     if (!restoring && snapshot) return YES; // Respect edits made while the app runs.
-    if (restoring && [current isEqual:snapshot[@"applied"]]) return write(snapshot[@"before"]);
     NSMutableArray *others = [NSMutableArray new], *capsEntries = [NSMutableArray new];
     for (id entry in current) {
         if ([entry isKindOfClass:NSDictionary.class] && [entry[sourceKey] isEqual:@(caps)])
@@ -44,9 +46,13 @@ static const uint64_t caps = 0x700000039, option = 0x7000000e2;
     }
     BOOL configured = [capsEntries isEqual:@[desired]];
     if (restoring) {
-        if (!configured) return YES;
-        [others addObjectsFromArray:snapshot[@"caps"]];
-        return write(others);
+        if (configured) {
+            [others addObjectsFromArray:snapshot[@"caps"]];
+            NSArray *restored = [current isEqual:snapshot[@"applied"]] ? snapshot[@"before"] : others;
+            if (!write(restored)) return NO;
+        }
+        [_snapshots removeObjectForKey:registryID];
+        return YES;
     }
     if (configured) { _snapshots[registryID] = NSNull.null; return YES; }
     [others addObject:desired];
@@ -76,6 +82,6 @@ static const uint64_t caps = 0x700000039, option = 0x7000000e2;
     return success;
 }
 - (BOOL)refresh { return [self update:NO]; }
-- (void)restore { [self update:YES]; }
+- (void)restore { if (_snapshots.count) [self update:YES]; }
 - (void)dealloc { if (_client) CFRelease(_client); }
 @end

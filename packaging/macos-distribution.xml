@@ -10,7 +10,7 @@
   <options customize="never" hostArchitectures="x86_64,arm64" require-scripts="true"/>
   <choices-outline><line choice="app"/></choices-outline>
   <choice id="app" visible="false"><pkg-ref id="com.nauroman.arrowkeys.native"/></choice>
-  <pkg-ref id="com.nauroman.arrowkeys.native" version="1.1.3">#ArrowKeysApp.pkg</pkg-ref>
+  <pkg-ref id="com.nauroman.arrowkeys.native" version="1.1.4">#ArrowKeysApp.pkg</pkg-ref>
   <pkg-ref id="com.nauroman.arrowkeys.native">
     <must-close><app id="com.nauroman.ArrowKeys"/></must-close>
   </pkg-ref>
