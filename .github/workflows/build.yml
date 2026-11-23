@@ -29,6 +29,14 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - run: python3 packaging/build-mac.py dist/ArrowKeys-macOS.zip
       - run: bash tests/macos-install.sh "$PWD/dist/ArrowKeys-macOS.zip"
+      - name: Install and validate on a clean macOS runner
+        run: |
+          cli='/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli'
+          test ! -e "$cli"
+          unzip -qd "$RUNNER_TEMP/arrowkeys" dist/ArrowKeys-macOS.zip
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/arrowkeys-profile"
+          "$RUNNER_TEMP/arrowkeys/Install ArrowKeys.command" --non-interactive
+          "$cli" --lint-complex-modifications "$XDG_CONFIG_HOME/karabiner/assets/complex_modifications/nauroman-arrowkeys.json"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: macos

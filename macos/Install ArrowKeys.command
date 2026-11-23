@@ -29,11 +29,15 @@ if [[ ${1:-} != --configure-only && ! -x "$cli" ]]; then
   packages=("$mount"/*.pkg)
   [[ ${#packages[@]} == 1 && -f "${packages[0]}" ]]
   /usr/sbin/spctl --assess --type install "${packages[0]}"
-  /usr/bin/osascript - "${packages[0]}" <<'APPLESCRIPT'
+  if [[ ${1:-} == --non-interactive ]]; then
+    sudo -n /usr/sbin/installer -pkg "${packages[0]}" -target /
+  else
+    /usr/bin/osascript - "${packages[0]}" <<'APPLESCRIPT'
 on run argv
     do shell script "/usr/sbin/installer -pkg " & quoted form of (item 1 of argv) & " -target /" with administrator privileges
 end run
 APPLESCRIPT
+  fi
   [[ -x "$cli" ]]
 fi
 
@@ -74,7 +78,7 @@ configure() {
   echo 'ArrowKeys is enabled in the selected profile.'
 }
 configure
-if [[ ${1:-} != --configure-only ]]; then
+if [[ $# == 0 ]]; then
   open -a Karabiner-Elements
   echo 'Complete any permission prompts in Karabiner-Elements. Then try Caps Lock + J in TextEdit.'
 fi
