@@ -45,14 +45,19 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 }
 
 #ifndef ARROWKEYS_TEST
+#import "KeyboardMapping.h"
 @interface Controller : NSObject <NSApplicationDelegate>
+@property(strong) KeyboardMapping *keyboards;
 @property(strong) NSStatusItem *item;
 @property(strong) NSMenuItem *status;
 @property(strong) NSMenuItem *login;
 @end
 @implementation Controller
 - (void)connect {
-    if (tap && CFMachPortIsValid(tap) && CGEventTapIsEnabled(tap)) return;
+    if (tap && CFMachPortIsValid(tap) && CGEventTapIsEnabled(tap)) {
+        self.status.title = [self.keyboards refresh] ? @"Navigation active" : @"Could not configure a keyboard";
+        return;
+    }
     if (tap) { CFMachPortInvalidate(tap); CFRelease(tap); tap = NULL; }
     memset(held, 0, sizeof(held));
     if (AXIsProcessTrusted()) {
@@ -67,6 +72,7 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     }
     self.status.title = tap ? @"Navigation active" : @"Waiting for Accessibility permission";
 }
+- (void)applicationWillTerminate:(NSNotification *)notification { [self.keyboards restore]; }
 - (void)access:(id)sender {
     [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
 }
@@ -80,6 +86,7 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     if (error) [NSApp presentError:error];
 }
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+    self.keyboards = [KeyboardMapping new];
     self.item = [NSStatusBar.systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
     self.item.button.title = @"⇥";
     self.item.button.toolTip = @"ArrowKeys";
@@ -102,7 +109,7 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 int main(void) {
     @autoreleasepool {
         NSApplication *app = NSApplication.sharedApplication;
-        Controller *controller = [Controller new];
+        __attribute__((objc_precise_lifetime)) Controller *controller = [Controller new];
         app.delegate = controller;
         [app run];
     }
