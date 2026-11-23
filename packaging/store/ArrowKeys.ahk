@@ -35,7 +35,7 @@ ShowGuide(*) {
         window := Gui(, "ArrowKeys")
         window.BackColor := "FAF9F6"
         window.MarginX := 24
-        window.MarginY := 20
+        window.MarginY := 10
         window.SetFont("s21 Bold c202020", "Segoe UI")
         window.AddText("w560", "Hold Caps Lock to move")
         window.SetFont("s11 Norm c303030")
