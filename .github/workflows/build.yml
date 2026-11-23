@@ -3,7 +3,7 @@ on:
   pull_request:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ['v*', 'windows-v*']
   workflow_dispatch:
 
 permissions:
@@ -18,12 +18,23 @@ jobs:
         run: ./packaging/build-windows.ps1 -OutputDirectory dist
       - shell: pwsh
         run: ./tests/windows-install.ps1 -Setup (Resolve-Path dist/ArrowKeys-Windows-Setup.exe)
+      - name: Install and exercise the Store edition on a clean Windows desktop
+        shell: pwsh
+        run: |
+          python -m pip install Pillow==12.2.0
+          ./packaging/build-store.ps1 -IdentityName ArrowKeys.CI -Publisher CN=ArrowKeys.CI -PublisherDisplayName ArrowKeys -Version 1.1.1.0
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./tests/windows-store.ps1
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: store-guide
+          path: dist/store/Shortcut-guide.png
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: windows
-          path: dist/
+          path: dist/ArrowKeys-Windows-Setup.exe
 
   macos:
+    if: "!startsWith(github.ref, 'refs/tags/windows-v')"
     runs-on: macos-15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -38,20 +49,27 @@ jobs:
 
   scan:
     needs: [windows, macos]
+    if: >-
+      !cancelled() && needs.windows.result == 'success' &&
+      (needs.macos.result == 'success' ||
+      (startsWith(github.ref, 'refs/tags/windows-v') && needs.macos.result == 'skipped'))
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
+          pattern: '{windows,macos}'
           path: dist
           merge-multiple: true
-      - name: Scan both downloads with ClamAV
+      - name: Scan release downloads with ClamAV
         run: |
           docker pull clamav/clamav:stable
           docker run --rm --network none --entrypoint clamscan clamav/clamav:stable --version
           docker run --rm --network none --entrypoint clamscan -v "$PWD/dist:/scan:ro" clamav/clamav:stable --recursive /scan
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
+    if: >-
+      !cancelled() && needs.scan.result == 'success' && github.event_name == 'push' &&
+      (startsWith(github.ref, 'refs/tags/v') || startsWith(github.ref, 'refs/tags/windows-v'))
     needs: scan
     runs-on: ubuntu-latest
     permissions:
@@ -61,6 +79,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
+          pattern: '{windows,macos}'
           path: dist
           merge-multiple: true
       - name: Include the corresponding AutoHotkey source
@@ -75,4 +94,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           sha256sum ArrowKeys-* AutoHotkey-* > SHA256SUMS.txt
+          if [[ "$GITHUB_REF_NAME" == windows-v* ]]; then
+            test -f ArrowKeys-Windows-Setup.exe
+            test ! -e ArrowKeys-macOS.pkg
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --latest=false \
+              --title "ArrowKeys ${GITHUB_REF_NAME#windows-v} for Windows" \
+              --notes "Download ArrowKeys-Windows-Setup.exe to install ArrowKeys for your Windows account. This version includes the new ArrowKeys icon and links to the [source code]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_REF_NAME) and verified downloads in the installer. The [Windows installation and removal tests and ClamAV scan]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) passed. The standalone installer is unsigned. Use SHA256SUMS.txt and the GitHub build provenance to verify your download." ./*
+            exit 0
+          fi
           gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --title "ArrowKeys $GITHUB_REF_NAME" --notes "Download ArrowKeys-Windows-Setup.exe for Windows or ArrowKeys-macOS.pkg for Mac. The Mac package works offline and opens in Apple's Installer. Both downloads passed the [installation tests and ClamAV scan]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID). The assets include SHA-256 checksums and have GitHub build provenance. The ArrowKeys package itself is unsigned. See the README for permissions and verification." ./*
