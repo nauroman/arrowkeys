@@ -28,8 +28,7 @@ static NSString *const loginSetupKey = @"OpenAtLoginConfigured";
 static void configureLoginDefault(NSUserDefaults *defaults, SMAppServiceStatus status, BOOL (^registerItem)(void)) {
     if ([defaults boolForKey:loginSetupKey]) return;
     // Once configured, macOS owns the setting, including changes in System Settings.
-    if (status == SMAppServiceStatusEnabled || status == SMAppServiceStatusRequiresApproval ||
-        (status == SMAppServiceStatusNotRegistered && registerItem()))
+    if (status == SMAppServiceStatusEnabled || status == SMAppServiceStatusRequiresApproval || registerItem())
         [defaults setBool:YES forKey:loginSetupKey];
 }
 
