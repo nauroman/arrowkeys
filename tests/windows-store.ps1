@@ -20,7 +20,7 @@ if (!$app) { throw 'Package registration failed' }
 try {
     Start-Process explorer.exe -ArgumentList ("shell:AppsFolder\{0}!ArrowKeys" -f $app.PackageFamilyName)
     for ($i = 0; $i -lt 60; $i++) {
-        $proc = Get-Process ArrowKeys -ErrorAction SilentlyContinue | Where-Object MainWindowTitle -eq 'ArrowKeys'
+        $proc = Get-Process ArrowKeys -ErrorAction SilentlyContinue | Where-Object MainWindowTitle -eq 'Arrow Keys'
         if ($proc) { break }
         Start-Sleep -Milliseconds 500
     }
