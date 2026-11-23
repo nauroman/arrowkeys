@@ -8,7 +8,7 @@ The native menu bar app uses Accessibility permission to recognize the navigatio
 
 ArrowKeys processes keyboard input on your PC to turn its shortcuts into cursor movements. The app does not record what you type, collect personal information, send telemetry, display ads or use the network. Text entered in the shortcut guide is held in memory and disappears when the app exits.
 
-The Microsoft Store edition saves a local flag after it first shows the shortcut guide. Windows manages the optional startup setting and removes the app's local package data when you uninstall it.
+The Microsoft Store edition saves a local flag after it first shows the shortcut guide. Windows enables startup at sign-in when you first open the app. You can turn it off in Settings → Apps → Startup. Uninstalling removes the startup task and the app's local package data.
 
 You can ask questions through the project's [support page](https://github.com/nauroman/arrowkeys/issues).
 
