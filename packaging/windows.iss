@@ -4,7 +4,7 @@ AppName=ArrowKeys
 AppVersion=1.1.1
 AppPublisher=Roman Naumov
 AppPublisherURL=https://github.com/nauroman/arrowkeys
-AppUpdatesURL=https://github.com/nauroman/arrowkeys/releases/latest
+AppUpdatesURL=https://github.com/nauroman/arrowkeys/releases
 DefaultDirName={localappdata}\Programs\ArrowKeys
 PrivilegesRequired=lowest
 DisableDirPage=yes
@@ -61,7 +61,7 @@ begin
   WizardForm.WelcomeLabel2.Visible := False;
   Info.Caption := 'ArrowKeys lets you move through text with Caps Lock and the letter keys.' + #13#10#13#10 +
     'You can <a href="https://github.com/nauroman/arrowkeys">review the source code on GitHub</a> or ' +
-    '<a href="https://github.com/nauroman/arrowkeys/releases/latest">download the installers and SHA-256 checksums</a> to verify your copy.';
+    '<a href="https://github.com/nauroman/arrowkeys/releases">download the installers and SHA-256 checksums</a> to verify your copy.';
   Info.AdjustHeight;
   Info.OnLinkClick := @OpenProjectLink;
 end;

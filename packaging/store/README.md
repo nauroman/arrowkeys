@@ -9,7 +9,7 @@ Use the four values assigned to this app under **Partner Center → Product iden
 
 The unsigned submission package and 300 × 300 listing logo are written to
 `dist/store`. CI uses a separate identity and signs only its disposable test build.
-The release job publishes the standalone Windows and macOS installers.
+Tag a Windows-only release as `windows-vX.Y.Z` to publish the verified standalone Windows installer on GitHub.
 
 ## Store description
 
@@ -19,7 +19,7 @@ Open ArrowKeys and try the shortcuts in its built-in guide. Close the guide to k
 
 The Windows edition works offline and includes the AutoHotkey runtime.
 
-ArrowKeys is open source. Review the code at https://github.com/nauroman/arrowkeys. You can also download the standalone Windows and Mac installers and compare their SHA-256 checksums at https://github.com/nauroman/arrowkeys/releases/latest.
+ArrowKeys is open source. Review the code at https://github.com/nauroman/arrowkeys. You can also download the standalone Windows installer and verify its SHA-256 checksum at https://github.com/nauroman/arrowkeys/releases.
 
 ## Certification notes
 
