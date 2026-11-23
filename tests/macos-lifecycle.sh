@@ -23,11 +23,14 @@ for cycle in 1 2; do
   lipo "$app/Contents/MacOS/ArrowKeys" -verify_arch arm64 x86_64
   pkgutil --pkg-info com.nauroman.arrowkeys.native
   cmp "$repo/assets/ArrowKeys.icns" "$app/Contents/Resources/ArrowKeys.icns"
+  cmp "$repo/assets/ArrowKeysMenuTemplate.svg" "$app/Contents/Resources/ArrowKeysMenuTemplate.svg"
   test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleIconFile' "$app/Contents/Info.plist")" = ArrowKeys.icns
   test ! -e /Applications/Karabiner-Elements.app
-  open "$app"
+  # Only the package starts the app. Require the signed-in user to own it.
+  console_uid=$(/usr/bin/stat -f '%u' /dev/console)
+  test "$console_uid" -ne 0
   for ((i=0; i<50; i++)); do
-    pid=$(pgrep -x ArrowKeys || true)
+    pid=$(pgrep -u "$console_uid" -x ArrowKeys || true)
     [[ -n "$pid" ]] && break
     sleep 0.2
   done
