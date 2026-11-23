@@ -74,13 +74,19 @@ check_delivery com.apple.TextEdit "$stage/TextEdit.txt"
 check_delivery com.apple.Safari "$src/browser.html"
 check_delivery com.apple.dt.Xcode "$stage/Xcode.txt"
 log="$stage/live-removal.log"
+# The observer reads the system's actual per-device values from outside the test bundle.
+"$kit/StoreChecks" --keyboard-state > "$stage/before-live.json" || true
 open -g -n --stdout "$log" --stderr "$log.err" "$receiver" --args --live-removal
 for ((i=0;i<60;i++)); do grep -Eq 'APPLIED:|NO_KEYBOARD:|MAPPING_UNAVAILABLE:' "$log" 2>/dev/null && break; sleep 0.25; done
 if grep -q '^APPLIED:' "$log"; then
+    "$kit/StoreChecks" --keyboard-state > "$stage/active-live.json"
+    "$kit/StoreChecks" --check-active "$stage/before-live.json" "$stage/active-live.json"
     mv "$receiver" "$stage/Removed Keyboard Check.app"
     for ((i=0;i<60;i++)); do grep -q '^RESTORED:' "$log" && break; sleep 0.25; done
     cat "$log"
     grep -q '^RESTORED:' "$log"
+    "$kit/StoreChecks" --keyboard-state > "$stage/after-live.json"
+    cmp "$stage/before-live.json" "$stage/after-live.json"
 elif grep -Eq '^NO_KEYBOARD:|^MAPPING_UNAVAILABLE:.*Baseline restored: yes' "$log"; then
     cat "$log"
     echo 'Live device assignment requires a physical acceptance run.'

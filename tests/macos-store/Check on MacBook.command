@@ -26,8 +26,9 @@ read -r -p 'Press Return here when ready. '
 "$checker" --store-running || { echo 'The Store app is not running.'; exit 1; }
 "$checker" --keyboard-state > "$report/active.json"
 passed=true
-if cmp -s "$report/before.json" "$report/active.json"; then
-    echo 'No assignment changed. Check whether Caps Lock was already reassigned before this run.'
+if ! "$checker" --check-active "$report/before.json" "$report/active.json"; then
+    echo 'The expected temporary Caps Lock assignment could not be verified.'
+    passed=false
 fi
 exercise_editor() {
     local editor=$1 kind file
@@ -84,8 +85,10 @@ printf 'zz' > "$report/After removal.txt"
 echo 'In TextEdit, press Command+Down. Tap Caps Lock, type a, tap Caps Lock again, type a, then save.'
 open -a TextEdit "$report/After removal.txt"
 read -r -p 'Press Return after saving. '
-if [[ $(cat "$report/After removal.txt") == zzAa ]]; then echo 'Physical Caps Lock toggled uppercase on and off.'
-else echo 'Physical uppercase check failed (expected zzAa with default settings).'; passed=false; fi
+case $(cat "$report/After removal.txt") in
+    zzAa|zzaA) echo 'Physical Caps Lock toggled the letter case twice.' ;;
+    *) echo 'Physical uppercase check failed. Two lowercase keystrokes should alternate case.'; passed=false ;;
+esac
 if [[ $passed == true ]]; then echo 'PASS: 24 shortcut comparisons and Caps Lock after removal.'
 else echo 'INCOMPLETE OR FAILED. See the comparisons above.'; fi
 open -R "$report/Results.txt"

@@ -146,6 +146,31 @@ static NSString *readTestFile(const char *path) {
     return [NSString stringWithContentsOfFile:[NSString stringWithUTF8String:path] encoding:NSUTF8StringEncoding error:NULL];
 }
 
+static int checkActiveMapping(const char *baseline, const char *active) {
+    NSData *beforeData = [NSData dataWithContentsOfFile:[NSString stringWithUTF8String:baseline]];
+    NSData *afterData = [NSData dataWithContentsOfFile:[NSString stringWithUTF8String:active]];
+    if (!beforeData || !afterData) return 2;
+    NSDictionary *before = [NSJSONSerialization JSONObjectWithData:beforeData options:0 error:NULL];
+    NSDictionary *after = [NSJSONSerialization JSONObjectWithData:afterData options:0 error:NULL];
+    if (!before.count || ![[NSSet setWithArray:before.allKeys] isEqual:[NSSet setWithArray:after.allKeys]]) return 2;
+    NSDictionary *expected = @{sourceKey:@(caps), destinationKey:@(option)};
+    for (NSString *device in before) {
+        NSMutableArray *unrelated = [NSMutableArray new];
+        for (NSDictionary *entry in before[device])
+            if (![entry[sourceKey] isEqual:@(caps)]) [unrelated addObject:entry];
+        NSMutableArray *actual = [after[device] mutableCopy];
+        if (actual.count != unrelated.count + 1 || ![actual containsObject:expected]) return 1;
+        [actual removeObject:expected];
+        if (![actual isEqual:unrelated]) return 1;
+    }
+    if ([before isEqual:after]) {
+        puts("Caps Lock was already mapped before this test; there is no new assignment to restore.");
+        return 1;
+    }
+    puts("The temporary Caps Lock assignment is visible on each test keyboard.");
+    return 0;
+}
+
 static int compareEditors(NSString *reference, NSString *observed, NSString *fixture) {
     if (!reference || !observed || !fixture) return 2;
     NSMutableString *expected = [reference mutableCopy], *actual = [observed mutableCopy];
@@ -206,6 +231,7 @@ int main(int argc, const char **argv) {
         if (argc == 5 && strcmp(argv[1], "--compare-editors") == 0)
             return compareEditors(readTestFile(argv[2]), readTestFile(argv[3]), readTestFile(argv[4]));
         if (argc == 4 && strcmp(argv[1], "--check-safari") == 0) return checkSafari(argv[2], argv[3]);
+        if (argc == 4 && strcmp(argv[1], "--check-active") == 0) return checkActiveMapping(argv[2], argv[3]);
         if (argc != 2) return 2;
         if (strcmp(argv[1], "--store-running") == 0)
             return [NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.nauroman.ArrowKeys.Store"].count ? 0 : 1;
