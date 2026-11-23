@@ -1,4 +1,10 @@
-# ArrowKeys for Windows privacy policy
+# ArrowKeys privacy policy
+
+## macOS
+
+The native menu bar app uses Accessibility permission to recognize the navigation shortcuts. It processes key events locally and keeps each keyboard’s previous Caps Lock assignment in memory so it can restore that assignment when it quits. ArrowKeys does not record typed text or send keyboard events to a server.
+
+## Windows
 
 ArrowKeys processes keyboard input on your PC to turn its shortcuts into cursor movements. The app does not record what you type, collect personal information, send telemetry, display ads or use the network. Text entered in the shortcut guide is held in memory and disappears when the app exits.
 

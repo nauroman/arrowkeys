@@ -1,24 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
   <title>ArrowKeys</title>
-  <welcome file="welcome.html"/>
-  <conclusion file="finish.html"/>
+  <background file="ArrowKeys.png" alignment="bottomleft" scaling="none"/>
+  <background-darkAqua file="ArrowKeys.png" alignment="bottomleft" scaling="none"/>
+  <welcome file="welcome.rtf"/>
+  <conclusion file="finish.rtf"/>
   <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true"/>
   <volume-check><allowed-os-versions><os-version min="13.0"/></allowed-os-versions></volume-check>
   <options customize="never" hostArchitectures="x86_64,arm64" require-scripts="true"/>
-  <choices-outline>
-    <line choice="karabiner"/>
-    <line choice="driver"/>
-    <line choice="profile"/>
-  </choices-outline>
-  <choice id="karabiner" visible="false" selected="!system.files.fileExistsAtPath('/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli')">
-    <pkg-ref id="org.pqrs.Karabiner-Elements"/>
-  </choice>
-  <choice id="driver" visible="false" selected="!system.files.fileExistsAtPath('/Applications/.Karabiner-VirtualHIDDevice-Manager.app')">
-    <pkg-ref id="org.pqrs.Karabiner-DriverKit-VirtualHIDDevice"/>
-  </choice>
-  <choice id="profile" visible="false"><pkg-ref id="com.nauroman.arrowkeys.profile"/></choice>
-  <pkg-ref id="org.pqrs.Karabiner-Elements" version="16.3.0">#Installer.pkg</pkg-ref>
-  <pkg-ref id="org.pqrs.Karabiner-DriverKit-VirtualHIDDevice" version="8.5.0">#Karabiner-DriverKit-VirtualHIDDevice.pkg</pkg-ref>
-  <pkg-ref id="com.nauroman.arrowkeys.profile" version="1.0.1">#ArrowKeysProfile.pkg</pkg-ref>
+  <choices-outline><line choice="app"/></choices-outline>
+  <choice id="app" visible="false"><pkg-ref id="com.nauroman.arrowkeys.native"/></choice>
+  <pkg-ref id="com.nauroman.arrowkeys.native" version="1.1.1">#ArrowKeysApp.pkg</pkg-ref>
 </installer-gui-script>
