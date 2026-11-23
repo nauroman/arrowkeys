@@ -57,13 +57,13 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 @end
 @implementation Controller
 - (void)connect {
-    if (tap && CFMachPortIsValid(tap) && CGEventTapIsEnabled(tap)) {
-        self.status.title = [self.keyboards refresh] ? @"Navigation active" : @"Could not configure a keyboard";
-        return;
+    if (tap && (!CFMachPortIsValid(tap) || !CGEventTapIsEnabled(tap))) {
+        CFMachPortInvalidate(tap);
+        CFRelease(tap);
+        tap = NULL;
+        memset(held, 0, sizeof(held));
     }
-    if (tap) { CFMachPortInvalidate(tap); CFRelease(tap); tap = NULL; }
-    memset(held, 0, sizeof(held));
-    if (AXIsProcessTrusted()) {
+    if (!tap && AXIsProcessTrusted()) {
         CGEventMask keys = CGEventMaskBit(kCGEventKeyDown) | CGEventMaskBit(kCGEventKeyUp);
         tap = CGEventTapCreate(kCGSessionEventTap, kCGHeadInsertEventTap, kCGEventTapOptionDefault,
                                keys, translate, NULL);
@@ -73,7 +73,11 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
             CFRelease(source);
         }
     }
-    self.status.title = tap ? @"Navigation active" : @"Waiting for Accessibility permission";
+    if (!tap) {
+        self.status.title = @"Waiting for Accessibility permission";
+        return;
+    }
+    self.status.title = [self.keyboards refresh] ? @"Navigation active" : @"Could not configure a keyboard";
 }
 - (void)applicationWillTerminate:(NSNotification *)notification {
     if (self.bundleWatcher) dispatch_source_cancel(self.bundleWatcher);
