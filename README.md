@@ -10,10 +10,10 @@ A small [AutoHotkey v2](https://www.autohotkey.com/) script on Windows and a [Ka
 
 | Platform | Download | What to do |
 | --- | --- | --- |
-| Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey and starts ArrowKeys for your account. The sign-in shortcut is optional. |
+| Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/download/windows-v1.1.1/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey and starts ArrowKeys for your account. The sign-in shortcut is optional. |
 | macOS 13 or newer | [ArrowKeys-macOS.pkg](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg) | Double-click the package, then choose **Continue → Install**. It works offline, installs missing Karabiner components and enables ArrowKeys for the signed-in desktop user. |
 
-Find the scan log and SHA-256 checksums on the [release page](https://github.com/nauroman/arrowkeys/releases/latest). You can also [verify the build provenance](#verify-a-download).
+Find the scan log and SHA-256 checksums on the [release page for your platform](https://github.com/nauroman/arrowkeys/releases). You can also [verify the build provenance](#verify-a-download).
 
 On a fresh Mac, authorize the package in **Installer**, then open **Karabiner-Elements** in Applications and complete its permission prompts. Karabiner needs access to keyboard events and a virtual keyboard to send the remapped keys. These approvals require your interaction. [Karabiner setup guide](https://karabiner-elements.pqrs.org/docs/manual/misc/required-macos-settings/)
 
@@ -40,7 +40,7 @@ gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
 gh attestation verify ArrowKeys-macOS.pkg --repo nauroman/arrowkeys
 ```
 
-The ArrowKeys installers have no publisher signatures, and the Mac package has no Apple notarization. macOS may show an unidentified-developer warning. During the build, GitHub verifies the pinned SHA-256, Gatekeeper result and developer identity of the official Karabiner package before copying its components. The [Windows hotkeys](arrowkeys.ahk) and [macOS rule](macos/arrowkeys.json) are available for inspection. [Release files and scan results](https://github.com/nauroman/arrowkeys/releases/latest)
+The ArrowKeys installers have no publisher signatures, and the Mac package has no Apple notarization. macOS may show an unidentified-developer warning. During the build, GitHub verifies the pinned SHA-256, Gatekeeper result and developer identity of the official Karabiner package before copying its components. The [Windows hotkeys](arrowkeys.ahk) and [macOS rule](macos/arrowkeys.json) are available for inspection. [Release files and scan results](https://github.com/nauroman/arrowkeys/releases)
 
 ### Windows setup from source
 
