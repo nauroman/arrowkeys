@@ -29,20 +29,8 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - run: bash packaging/build-mac.sh dist
       - run: bash tests/macos-install.sh "$PWD/macos"
-      - name: Install and validate on a clean macOS runner
-        run: |
-          cli='/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli'
-          test ! -e "$cli"
-          sudo installer -pkg dist/ArrowKeys-macOS.pkg -target /
-          codesign --verify --strict /Applications/Karabiner-Elements.app
-          support='/Library/Application Support/ArrowKeys'
-          "$cli" --lint-complex-modifications "$support/arrowkeys.json"
-          pkgutil --pkg-info com.nauroman.arrowkeys.profile
-          if [[ "$(stat -f %Su /dev/console)" == "$(id -un)" ]]; then
-            test -f "$HOME/.config/karabiner/assets/complex_modifications/nauroman-arrowkeys.json"
-          fi
-          installer -showChoicesXML -pkg dist/ArrowKeys-macOS.pkg -target / > "$RUNNER_TEMP/arrowkeys-choices.plist"
-          python3 -c 'import plistlib,sys; items=plistlib.load(open(sys.argv[1],"rb"))[0]["childItems"]; choices={c["choiceIdentifier"]:c["choiceIsSelected"] for c in items}; assert choices=={"karabiner":False,"driver":False,"profile":True}, choices' "$RUNNER_TEMP/arrowkeys-choices.plist"
+      - name: Test install, cursor movement, uninstall and reinstall on a clean Mac
+        run: bash tests/macos-lifecycle.sh "$PWD/dist/ArrowKeys-macOS.pkg"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: macos

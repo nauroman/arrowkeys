@@ -27,6 +27,8 @@ Caps Lock acts as **Option**, and either physical Option key also activates the 
 
 The installer keeps other profiles and rules, and backs up an existing profile file before editing it. If the profile uses comments, a symbolic link or another unsupported format, the installer makes the rule available under **Karabiner-Elements → Complex Modifications → Add predefined rule → ArrowKeys → Enable**. To turn ArrowKeys off, remove its rule under **Complex Modifications**. [View the complete Mac rule](macos/arrowkeys.json)
 
+To uninstall, open **Applications → Uninstall ArrowKeys.command**. It removes the ArrowKeys rule from your profiles, removes the installed ArrowKeys files and forgets the package receipt. Other accounts can remove their own rule under **Complex Modifications**. Karabiner is shared with other keyboard rules. If you also want to remove Karabiner and its virtual keyboard, use its built-in uninstaller. You can reinstall ArrowKeys by reopening the same package. [Karabiner uninstall guide](https://karabiner-elements.pqrs.org/docs/manual/operation/uninstall/)
+
 ### Verify a download
 
 The [release workflow](.github/workflows/build.yml) builds the installers from the tagged source, checks installation on Windows and macOS, and scans the release downloads with ClamAV. Each release links to its scan log and includes **SHA256SUMS.txt**. A clean scan means that the scanner found no known threats in those files at the time of the scan.

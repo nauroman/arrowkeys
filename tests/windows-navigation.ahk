@@ -6,26 +6,26 @@ SendMode "Event"
 SendLevel 10
 SetKeyDelay 25, 25
 window := Gui(, "ArrowKeys installation test")
-edit := window.AddEdit("w480 r5 -Wrap", "alpha bravo charlie`r`nsecond line here`r`nthird line")
+textBox := window.AddEdit("w480 r5 -Wrap", "alpha bravo charlie`r`nsecond line here`r`nthird line")
 window.Show()
 WinActivate window
 if !WinWaitActive(window, , 5)
     ExitApp 2
-edit.Focus()
+textBox.Focus()
 
 position() {
-    global edit
+    global textBox
     start := Buffer(4, 0)
     finish := Buffer(4, 0)
-    SendMessage(0xB0, start.Ptr, finish.Ptr, edit.Hwnd)
+    SendMessage(0xB0, start.Ptr, finish.Ptr, textBox.Hwnd)
     return NumGet(start, 0, "UInt")
 }
 
 move(keys, start := 27) {
-    global edit, window
-    if !WinActive(window) || ControlGetFocus(window) != edit.Hwnd
-        throw Error("Test edit lost focus")
-    SendMessage(0xB1, start, start, edit.Hwnd)
+    global textBox, window
+    if !WinActive(window) || ControlGetFocus(window) != textBox.Hwnd
+        throw Error("Test textBox lost focus")
+    SendMessage(0xB1, start, start, textBox.Hwnd)
     SendEvent keys
     Sleep 100
     return position()
@@ -34,9 +34,9 @@ move(keys, start := 27) {
 try {
     if A_Args[1] = "removed" {
         SetCapsLockState "Off"
-        before := edit.Value
+        before := textBox.Value
         move("{CapsLock}j{CapsLock}")
-        if !InStr(edit.Value, "J", true) || edit.Value == before || GetKeyState("CapsLock", "T")
+        if !InStr(textBox.Value, "J", true) || textBox.Value == before || GetKeyState("CapsLock", "T")
             throw Error("Ordinary Caps Lock typing did not return after uninstall")
     } else {
         cases := Map("j", "{Left}", "k", "{Down}", "l", "{Right}", "i", "{Up}",
@@ -46,9 +46,9 @@ try {
             if expected == 27
                 throw Error("Reference key did not move: " reference)
             for modifier in ["CapsLock", "LAlt", "RAlt"] {
-                before := edit.Value
+                before := textBox.Value
                 actual := move("{" modifier " down}" key "{" modifier " up}")
-                if actual != expected || edit.Value != before
+                if actual != expected || textBox.Value != before
                     throw Error(modifier "+" key " moved to " actual ", expected " expected)
             }
         }
