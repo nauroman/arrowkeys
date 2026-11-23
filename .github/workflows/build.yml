@@ -1,0 +1,84 @@
+name: Build and verify installers
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - shell: pwsh
+        run: ./packaging/build-windows.ps1 -OutputDirectory dist
+      - shell: pwsh
+        run: ./tests/windows-install.ps1 -Setup (Resolve-Path dist/ArrowKeys-Windows-Setup.exe)
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows
+          path: dist/
+
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - run: python3 packaging/build-mac.py dist/ArrowKeys-macOS.zip
+      - run: bash tests/macos-install.sh "$PWD/dist/ArrowKeys-macOS.zip"
+      - name: Install and validate on a clean macOS runner
+        run: |
+          cli='/Library/Application Support/org.pqrs/Karabiner-Elements/bin/karabiner_cli'
+          test ! -e "$cli"
+          unzip -qd "$RUNNER_TEMP/arrowkeys" dist/ArrowKeys-macOS.zip
+          export XDG_CONFIG_HOME="$RUNNER_TEMP/arrowkeys-profile"
+          "$RUNNER_TEMP/arrowkeys/Install ArrowKeys.command" --non-interactive
+          "$cli" --lint-complex-modifications "$XDG_CONFIG_HOME/karabiner/assets/complex_modifications/nauroman-arrowkeys.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: macos
+          path: dist/
+
+  scan:
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Scan both downloads with ClamAV
+        run: |
+          docker pull clamav/clamav:stable
+          docker run --rm --network none --entrypoint clamscan clamav/clamav:stable --version
+          docker run --rm --network none --entrypoint clamscan -v "$PWD/dist:/scan:ro" clamav/clamav:stable --recursive /scan
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
+    needs: scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Include the corresponding AutoHotkey source
+        run: curl -fsSL --retry 3 https://github.com/AutoHotkey/AutoHotkey/archive/refs/tags/v2.0.32.tar.gz -o dist/AutoHotkey-2.0.32-source.tar.gz
+      - name: Publish build provenance
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: dist/*
+      - name: Publish the verified downloads
+        working-directory: dist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha256sum ArrowKeys-* AutoHotkey-* > SHA256SUMS.txt
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --title "ArrowKeys $GITHUB_REF_NAME" --notes "Download ArrowKeys-Windows-Setup.exe for Windows or ArrowKeys-macOS.zip for Mac. Both downloads passed the [automated checks and ClamAV scan]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID). The assets include SHA-256 checksums and have GitHub build provenance. See the README for installation, permissions and verification." ./*
