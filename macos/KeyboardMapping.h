@@ -15,7 +15,6 @@
 @end
 
 @implementation KeyboardMapping {
-    IOHIDEventSystemClientRef _client;
     NSMutableDictionary *_snapshots;
     NSUserDefaults *_defaults;
     NSString *_bootID;
@@ -29,7 +28,6 @@ static const uint64_t caps = 0x700000039, option = 0x7000000e2;
 }
 - (instancetype)initWithRecoveryDefaults:(NSUserDefaults *)defaults {
     if ((self = [super init])) {
-        _client = IOHIDEventSystemClientCreateSimpleClient(NULL);
         _snapshots = [NSMutableDictionary new];
         if (defaults) {
             // IORegistry IDs and UserKeyMapping belong to one boot.
@@ -95,8 +93,16 @@ static const uint64_t caps = 0x700000039, option = 0x7000000e2;
     return write(others);
 }
 - (BOOL)update:(BOOL)restoring {
-    if (!_client) return NO;
-    NSArray *services = CFBridgingRelease(IOHIDEventSystemClientCopyServices(_client));
+    // A client lists only the services present when it was created, so use a new one each time
+    // to include keyboards connected later.
+    IOHIDEventSystemClientRef client = IOHIDEventSystemClientCreateSimpleClient(NULL);
+    if (!client) return NO;
+    BOOL success = [self update:restoring client:client];
+    CFRelease(client);
+    return success;
+}
+- (BOOL)update:(BOOL)restoring client:(IOHIDEventSystemClientRef)client {
+    NSArray *services = CFBridgingRelease(IOHIDEventSystemClientCopyServices(client));
     if (!services) return NO;
     BOOL success = YES;
     NSMutableSet *connected = [NSMutableSet new];
@@ -126,5 +132,4 @@ static const uint64_t caps = 0x700000039, option = 0x7000000e2;
 }
 - (BOOL)refresh { return [self update:NO]; }
 - (BOOL)restore { return !_snapshots.count || [self update:YES]; }
-- (void)dealloc { if (_client) CFRelease(_client); }
 @end
