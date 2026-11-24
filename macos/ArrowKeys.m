@@ -13,15 +13,17 @@ static NSString *const loginSetupKey = @"OpenAtLoginConfigured";
 
 static NSString *const setupShownKey = @"AccessibilitySetupShownForBuild";
 static NSString *const trustedBuildKey = @"AccessibilityTrustedBuild";
+static NSString *const trustedAdHocKey = @"AccessibilityTrustedBuildAdHoc";
 
-static void rememberAccess(NSUserDefaults *defaults, NSString *build) {
-    if (![[defaults stringForKey:trustedBuildKey] isEqualToString:build]) [defaults setObject:build forKey:trustedBuildKey];
+static void rememberAccess(NSUserDefaults *defaults, NSString *build, BOOL adHoc) {
+    if ([[defaults stringForKey:trustedBuildKey] isEqualToString:build] && [defaults boolForKey:trustedAdHocKey] == adHoc) return;
+    [defaults setObject:build forKey:trustedBuildKey];
+    [defaults setBool:adHoc forKey:trustedAdHocKey];
 }
 
 // Offer setup once per build that never had access. A build that had access lost it on purpose
 // or is only briefly unconfirmed, as right after login, so it never shows the guide by itself.
 static BOOL offerAccessibilitySetup(NSUserDefaults *defaults, NSString *build, BOOL trusted) {
-    if (trusted) rememberAccess(defaults, build);
     if (trusted || [[defaults stringForKey:setupShownKey] isEqualToString:build] ||
         [[defaults stringForKey:trustedBuildKey] isEqualToString:build])
         return NO;
@@ -29,12 +31,14 @@ static BOOL offerAccessibilitySetup(NSUserDefaults *defaults, NSString *build, B
     return YES;
 }
 
-// macOS ties an ad hoc build's access to that exact build, yet keeps showing an earlier build's
-// switch as on. On a new build's first launch, before any access check, clear that entry. The
-// first check then lists ArrowKeys again, switched off, so the guide matches what users see.
+// macOS ties an ad hoc build's access to that exact build, yet keeps showing its switch as on
+// after an update. On a new build's first launch, before any access check, clear that entry
+// unless access came from a Developer ID build, whose access carries over to this one. The first
+// check then lists ArrowKeys again, switched off, so the guide matches what users see.
 static BOOL shouldClearAccessibilityEntry(NSUserDefaults *defaults, NSString *build, BOOL adHoc) {
-    return adHoc && ![[defaults stringForKey:setupShownKey] isEqualToString:build] &&
-           ![[defaults stringForKey:trustedBuildKey] isEqualToString:build];
+    NSString *trustedBuild = [defaults stringForKey:trustedBuildKey];
+    if ([[defaults stringForKey:setupShownKey] isEqualToString:build] || [trustedBuild isEqualToString:build]) return NO;
+    return adHoc || !trustedBuild || [defaults boolForKey:trustedAdHocKey];
 }
 
 static BOOL clearAccessibilityEntry(NSString *bundleID) {
@@ -99,6 +103,7 @@ static BOOL isAdHocSigned(void) {
 @property(strong) NSAlert *accessibilityHelp;
 @property(strong) dispatch_source_t bundleWatcher;
 @property(copy) NSString *build;
+@property BOOL adHoc;
 @property BOOL staleEntryCleared;
 @end
 @implementation Controller
@@ -120,7 +125,7 @@ static BOOL isAdHocSigned(void) {
         return;
     }
     self.status.action = nil;
-    rememberAccess(NSUserDefaults.standardUserDefaults, self.build);
+    rememberAccess(NSUserDefaults.standardUserDefaults, self.build, self.adHoc);
     if (self.accessibilityHelp) [self dismissAccessibilitySetup:nil];
     if (tap && (!CFMachPortIsValid(tap) || !CGEventTapIsEnabled(tap))) {
         [self disconnect];
@@ -212,8 +217,9 @@ static BOOL isAdHocSigned(void) {
 }
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     self.build = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+    self.adHoc = isAdHocSigned();
     // macOS lists ArrowKeys in Accessibility Settings only on a process's first access check.
-    if (shouldClearAccessibilityEntry(NSUserDefaults.standardUserDefaults, self.build, isAdHocSigned()))
+    if (shouldClearAccessibilityEntry(NSUserDefaults.standardUserDefaults, self.build, self.adHoc))
         self.staleEntryCleared = clearAccessibilityEntry(NSBundle.mainBundle.bundleIdentifier);
     self.keyboards = [KeyboardMapping new];
     self.item = [NSStatusBar.systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
