@@ -35,7 +35,7 @@ static NSButton *newLoginCheckbox(void) {
     NSButton *_loginChoice;
     NSFileHandle *_relaunchWriter;
     dispatch_source_t _bundleWatcher, _termination;
-    BOOL _restorePending, _suspended, _ending, _sawPermissionSettings, _permissionGuide;
+    BOOL _restorePending, _suspended, _ending, _awaitingPermissionReturn, _sawPermissionSettings, _permissionGuide;
 }
 
 - (void)stopNavigation {
@@ -85,7 +85,7 @@ static NSButton *newLoginCheckbox(void) {
     BOOL first = ![defaults boolForKey:@"CompletedSetup"];
     BOOL chooseLogin = first || ![defaults boolForKey:loginChoiceRecorded];
     if (!chooseLogin) {
-        if (![self cursorPermissionGranted]) [self showPermissionGuide];
+        if (![self cursorPermissionGranted]) [self showPermissionGuide:YES];
         return;
     }
     NSAlert *alert = [NSAlert new];
@@ -102,18 +102,22 @@ static NSButton *newLoginCheckbox(void) {
     later.action = @selector(dismissSetup:);
     _loginChoice = newLoginCheckbox();
     alert.accessoryView = _loginChoice;
-    [self presentSetup:alert];
+    [self presentSetup:alert activate:YES];
 }
 
-- (void)presentSetup:(NSAlert *)alert {
+- (void)presentSetup:(NSAlert *)alert activate:(BOOL)activate {
     [alert layout];
     [alert.window center];
     _setupAlert = alert;
-    [NSApp activateIgnoringOtherApps:YES];
-    [alert.window makeKeyAndOrderFront:nil];
+    if (activate) {
+        [NSApp activateIgnoringOtherApps:YES];
+        [alert.window makeKeyAndOrderFront:nil];
+    } else {
+        [alert.window orderBack:nil];
+    }
 }
 
-- (void)showPermissionGuide {
+- (void)showPermissionGuide:(BOOL)activate {
     if (_permissionGuide) return;
     NSAlert *alert = [NSAlert new];
     alert.icon = NSApp.applicationIconImage;
@@ -140,7 +144,7 @@ static NSButton *newLoginCheckbox(void) {
     [reveal sizeToFit];
     alert.accessoryView = reveal;
     _permissionGuide = YES;
-    [self presentSetup:alert];
+    [self presentSetup:alert activate:activate];
 }
 
 - (void)revealApp:(id)sender {
@@ -154,6 +158,7 @@ static NSButton *newLoginCheckbox(void) {
         [NSUserDefaults.standardUserDefaults setObject:currentBuild() forKey:deferredPermissionBuild];
     }
     _permissionGuide = NO;
+    _awaitingPermissionReturn = NO;
     _sawPermissionSettings = NO;
     [_setupAlert.window orderOut:nil];
     _setupAlert = nil;
@@ -169,7 +174,7 @@ static NSButton *newLoginCheckbox(void) {
     if (first) [defaults setBool:YES forKey:@"CompletedSetup"];
     if (chooseLogin) [self setLoginEnabled:openAtLogin];
     if (![self cursorPermissionGranted]) {
-        [self showPermissionGuide];
+        [self showPermissionGuide:NO];
         [self openPermissionSettings:nil];
     }
     [self refresh];
@@ -184,6 +189,7 @@ static NSButton *newLoginCheckbox(void) {
     NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
     [defaults removeObjectForKey:deferredPermissionBuild];
     [defaults setObject:currentBuild() forKey:openedPermissionBuild];
+    _awaitingPermissionReturn = YES;
     _sawPermissionSettings = NO;
     [self requestSystemCursorAccess];
     if ([self cursorPermissionGranted]) { [self refresh]; return; }
@@ -245,10 +251,11 @@ static NSButton *newLoginCheckbox(void) {
 - (void)focusChanged:(NSNotification *)note {
     [_hotKeys cancelRepeat];
     NSRunningApplication *next = note.userInfo[NSWorkspaceApplicationKey];
-    if (!_permissionGuide || !next) return;
+    if (!_awaitingPermissionReturn || !next) return;
     if ([next.bundleIdentifier isEqual:@"com.apple.systempreferences"]) { _sawPermissionSettings = YES; return; }
     if (!_sawPermissionSettings || [next.bundleIdentifier isEqual:@"com.apple.finder"]) return;
-    if (next.activationPolicy != NSApplicationActivationPolicyRegular && next.processIdentifier != getpid()) return;
+    if (next.activationPolicy != NSApplicationActivationPolicyRegular || next.processIdentifier == getpid()) return;
+    _awaitingPermissionReturn = NO;
     _sawPermissionSettings = NO;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC), dispatch_get_main_queue(), ^{
         if (!self->_ending && self->_permissionGuide && !self->_sawPermissionSettings && ![self cursorPermissionGranted])
@@ -263,7 +270,7 @@ static NSButton *newLoginCheckbox(void) {
         return;
     }
     if ([self cursorPermissionGranted] || [[defaults stringForKey:deferredPermissionBuild] isEqual:currentBuild()]) return;
-    [self showPermissionGuide];
+    [self showPermissionGuide:NO];
     if (![[defaults stringForKey:openedPermissionBuild] isEqual:currentBuild()]) [self openPermissionSettings:nil];
 }
 

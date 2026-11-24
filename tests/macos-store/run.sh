@@ -5,6 +5,9 @@ src="$repo/tests/macos-store"
 out=$(cd "${1:?Supply the directory containing ArrowKeys-Store-Mac.zip}" && pwd)
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
+if MAC_APP_SIGN_IDENTITY=- bash "$repo/packaging/build-mac-store.sh" "$stage/signing" --development; then
+    echo 'An update build unexpectedly accepted an ad hoc signature.' >&2; exit 1
+fi
 ditto -x -k "$out/ArrowKeys-Store-Mac.zip" "$stage"
 app="$stage/ArrowKeys Store.app"
 codesign --verify --strict "$app"
@@ -69,10 +72,15 @@ for ((i=0;i<80;i++)); do
 done
 [[ -n "$new_pid" && "$new_pid" != "$old_pid" ]] || { cat "$stage/setup.err" >&2; exit 1; }
 [[ "$(ps -p "$new_pid" -o command=)" -ef "$app/Contents/MacOS/ArrowKeys" ]]
+open -b com.apple.systempreferences
+sleep 1
+open -b com.apple.TextEdit "$stage/Returning to the editor.txt"
+sleep 2
+[[ "$("$kit/StoreChecks" --store-pid)" == "$new_pid" ]]
 kill -TERM "$new_pid"
 for ((i=0;i<40;i++)); do "$kit/StoreChecks" --store-running || break; sleep 0.25; done
 if "$kit/StoreChecks" --store-running; then exit 1; fi
-echo 'Returning from System Settings to TextEdit automatically opened a fresh sandboxed instance.'
+echo 'Returning from System Settings reopened the sandboxed app once. A second switch kept the same process.'
 receiver="$stage/Registration Check.app"
 mkdir -p "$receiver/Contents/MacOS"
 cp "$stage/Removed.app/Contents/Info.plist" "$receiver/Contents/"
@@ -97,6 +105,26 @@ cp "$src_fixture" "$stage/Xcode.txt"
 check_delivery com.apple.TextEdit "$stage/TextEdit.txt"
 check_delivery com.apple.Safari "$src/browser.html"
 check_delivery com.apple.dt.Xcode "$stage/Xcode.txt"
+xcrun clang -fobjc-arc -framework Cocoa -framework Carbon -framework ApplicationServices \
+    "$src/EditorChecks.m" -o "$stage/EditorChecks"
+for target in com.apple.TextEdit com.apple.Safari com.apple.dt.Xcode; do
+    for mode in reference shortcuts; do
+        doc="$stage/$target-$mode.txt"
+        if [[ "$target" == com.apple.Safari ]]; then
+            doc="$stage/$target-$mode.html"
+            { printf '%s' '<!doctype html><title>ArrowKeys fixture</title><textarea rows="5" cols="64" autofocus>'
+              cat "$src_fixture"
+              printf '%s' '</textarea><script>onload=()=>document.querySelector("textarea").focus()</script>'
+            } > "$doc"
+        else
+            cp "$src_fixture" "$doc"
+        fi
+        open -b "$target" "$doc"
+        "$stage/EditorChecks" "$target" "$mode" "$src_fixture" "$stage/$target-$mode.result"
+    done
+    echo "Measured cursor positions in $target with registered Option shortcuts"
+    "$kit/StoreChecks" --compare-editors "$stage/$target-reference.result" "$stage/$target-shortcuts.result" "$src_fixture"
+done
 log="$stage/live-removal.log"
 # The observer reads the system's actual per-device values from outside the test bundle.
 "$kit/StoreChecks" --keyboard-state > "$stage/before-live.json" || true

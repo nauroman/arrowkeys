@@ -11,7 +11,9 @@ bash packaging/build-mac-store.sh dist/mac-app-store
 bash tests/macos-store/run.sh dist/mac-app-store
 ```
 
-Both ZIP files contain universal binaries for macOS 15.2 or newer. The development app is ad hoc signed unless you supply `MAC_APP_SIGN_IDENTITY`. The distributed app needs App Store signing and Apple review.
+Both ZIP files contain universal binaries for macOS 15.2 or newer. A development build uses **Apple Development** by default. Set `MAC_APP_SIGN_IDENTITY` to select the Apple signing identity for your team. Use the same signing identity and bundle identifier for subsequent development installs so macOS can recognize the permission you granted. App Store distribution uses its own signing workflow below.
+
+GitHub Actions builds the disposable test ZIP with `--ad-hoc`. macOS ties its permission to that particular build. For repeated testing on a personal Mac, install the Apple-signed development build. Moving from an ad hoc copy to a signed one may require granting access once more. [How macOS identifies updates](https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements/)
 
 ## Test a physical Mac
 

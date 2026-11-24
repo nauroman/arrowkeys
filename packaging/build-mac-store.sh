@@ -1,11 +1,20 @@
 #!/bin/bash
-# Local development builds produce a sandboxed app ZIP. --distribution also signs an upload package.
+# Development builds use a stable Apple identity so macOS can recognize updates.
 set -euo pipefail
 repo=$(cd "$(dirname "$0")/.." && pwd)
 mkdir -p "${1:?Supply an output directory}"
 out=$(cd "$1" && pwd)
 mode=${2:---development}
-case "$mode" in --development|--distribution) ;; *) echo "Unknown build mode: $mode" >&2; exit 2 ;; esac
+case "$mode" in
+    --development) identity=${MAC_APP_SIGN_IDENTITY:-Apple Development} ;;
+    --distribution) identity=${MAC_APP_SIGN_IDENTITY:?Supply an Apple Distribution signing identity} ;;
+    --ad-hoc) identity=- ;;
+    *) echo "Unknown build mode: $mode" >&2; exit 2 ;;
+esac
+if [[ "$mode" != --ad-hoc && "$identity" == - ]]; then
+    echo 'Updates need an Apple signing identity. Use --ad-hoc only for disposable test builds.' >&2
+    exit 2
+fi
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 app="$stage/ArrowKeys Store.app"
@@ -18,7 +27,7 @@ plist=/usr/libexec/PlistBuddy
 info="$contents/Info.plist"
 "$plist" -c "Set :CFBundleIdentifier $id" -c 'Set :CFBundleName ArrowKeys Store' \
     -c 'Add :CFBundleDisplayName string ArrowKeys Store' -c 'Set :CFBundleShortVersionString 1.0' \
-    -c "Set :CFBundleVersion ${MAC_STORE_BUILD_NUMBER:-3}" -c 'Set :LSMinimumSystemVersion 15.2' \
+    -c "Set :CFBundleVersion ${MAC_STORE_BUILD_NUMBER:-4}" -c 'Set :LSMinimumSystemVersion 15.2' \
     -c 'Add :LSApplicationCategoryType string public.app-category.productivity' \
     -c 'Add :LSMultipleInstancesProhibited bool true' -c 'Add :CFBundleSupportedPlatforms array' \
     -c 'Add :CFBundleSupportedPlatforms:0 string MacOSX' \
@@ -31,12 +40,9 @@ xcrun --sdk macosx clang -arch arm64 -arch x86_64 -mmacosx-version-min=15.2 -fob
     -framework Cocoa "$repo/macos/SetupRelaunch.m" -o "$contents/Helpers/SetupRelaunch"
 entitlements="$stage/Store.entitlements"
 cp "$repo/packaging/mac-app-store/ArrowKeys.entitlements" "$entitlements"
-identity=${MAC_APP_SIGN_IDENTITY:--}
 if [[ "$mode" == --distribution ]]; then
-    : "${MAC_APP_SIGN_IDENTITY:?Supply an Apple Distribution signing identity}"
     : "${MAC_INSTALLER_SIGN_IDENTITY:?Supply a Mac Installer Distribution identity}"
     : "${MAC_APP_STORE_PROFILE:?Supply the Mac App Store provisioning profile}"
-    [[ "$identity" != - ]]
     security cms -D -i "$MAC_APP_STORE_PROFILE" > "$stage/profile.plist"
     team=$("$plist" -c 'Print :TeamIdentifier:0' "$stage/profile.plist")
     prefix=$("$plist" -c 'Print :ApplicationIdentifierPrefix:0' "$stage/profile.plist")
@@ -50,6 +56,9 @@ codesign --force --options runtime --sign "$identity" --identifier "$id.SetupRel
     --entitlements "$repo/packaging/mac-app-store/Relaunch.entitlements" "$contents/Helpers/SetupRelaunch"
 codesign --force --options runtime --sign "$identity" --entitlements "$entitlements" "$app"
 codesign --verify --strict --verbose=2 "$app"
+if [[ "$mode" != --ad-hoc ]]; then
+    codesign --verify --strict -R='anchor apple generic' "$app"
+fi
 architectures=" $(xcrun lipo -archs "$contents/MacOS/ArrowKeys") "
 [[ "$architectures" == *" arm64 "* && "$architectures" == *" x86_64 "* ]]
 if [[ "$mode" == --distribution ]]; then
