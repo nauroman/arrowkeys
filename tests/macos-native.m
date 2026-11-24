@@ -6,14 +6,27 @@
 static void testAccessibilitySetup(void) {
     NSString *suite = [@"ArrowKeysTests." stringByAppendingString:NSUUID.UUID.UUIDString];
     NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:suite];
+    assert(offerAccessibilitySetup(defaults, @"112", NO));
+    assert(!offerAccessibilitySetup(defaults, @"112", NO));
     assert(!offerAccessibilitySetup(defaults, @"113", YES));
-    assert(offerAccessibilitySetup(defaults, @"113", NO));
+    // A build that had access never asks by itself, as when macOS confirms access late after login.
     assert(!offerAccessibilitySetup(defaults, @"113", NO));
-    assert(offerAccessibilitySetup(defaults, @"114", NO));
+    rememberAccess(defaults, @"114");
     assert(!offerAccessibilitySetup(defaults, @"114", NO));
-    assert(!offerAccessibilitySetup(defaults, @"115", YES));
+    // An update whose earlier grant no longer matches asks once.
+    assert(offerAccessibilitySetup(defaults, @"115", NO));
+    assert(!offerAccessibilitySetup(defaults, @"115", NO));
+    assert(!offerAccessibilitySetup(defaults, @"116", YES));
+    assert([[defaults stringForKey:trustedBuildKey] isEqualToString:@"116"]);
+    // Only a new ad hoc build's first launch clears the entry an earlier build left switched on.
+    assert(shouldClearAccessibilityEntry(defaults, @"117", YES));
+    assert(!shouldClearAccessibilityEntry(defaults, @"117", NO));
+    assert(offerAccessibilitySetup(defaults, @"117", NO));
+    assert(!shouldClearAccessibilityEntry(defaults, @"117", YES));
+    rememberAccess(defaults, @"118");
+    assert(!shouldClearAccessibilityEntry(defaults, @"118", YES));
     [defaults removePersistentDomainForName:suite];
-    puts("Accessibility setup appears once per build needing access, including after an update.");
+    puts("Accessibility setup appears once per build that never had access, including after an update.");
 }
 
 static void testOpenAtLoginDefault(void) {

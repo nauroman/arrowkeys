@@ -54,6 +54,19 @@ for cycle in 1 2; do
     echo 'ArrowKeys was absent from the macOS background task database' >&2
     exit 1
   fi
+  if [[ $cycle == 1 ]]; then
+    # Without access, a new ad hoc build clears the entry an earlier build left switched on,
+    # then offers its guide once after giving macOS a moment to confirm existing access.
+    build=$(/usr/libexec/PlistBuddy -c 'Print CFBundleVersion' "$app/Contents/Info.plist")
+    for ((i=0; i<50; i++)); do
+      shown=$(defaults read com.nauroman.ArrowKeys AccessibilitySetupShownForBuild 2>/dev/null || true)
+      [[ "$shown" == "$build" ]] && break
+      sleep 0.2
+    done
+    test "$shown" = "$build"
+    resets=$(/usr/bin/log show --last 2m --predicate 'process == "tccutil"' | grep -Fc TCCResetInternal || true)
+    (( resets > 0 ))
+  fi
   # Exercise the real menu-bar process while its bundle is removed from Applications.
   sleep 2
   sudo mv "$app" "$stage/removed-$cycle.app"
