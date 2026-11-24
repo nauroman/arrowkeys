@@ -6,14 +6,37 @@
 static void testAccessibilitySetup(void) {
     NSString *suite = [@"ArrowKeysTests." stringByAppendingString:NSUUID.UUID.UUIDString];
     NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:suite];
+    assert(offerAccessibilitySetup(defaults, @"112", NO));
+    assert(!offerAccessibilitySetup(defaults, @"112", NO));
     assert(!offerAccessibilitySetup(defaults, @"113", YES));
-    assert(offerAccessibilitySetup(defaults, @"113", NO));
+    // A build that had access never asks by itself, as when macOS confirms access late after login.
+    rememberAccess(defaults, @"113", YES);
     assert(!offerAccessibilitySetup(defaults, @"113", NO));
+    // An update whose earlier grant no longer matches asks once.
     assert(offerAccessibilitySetup(defaults, @"114", NO));
     assert(!offerAccessibilitySetup(defaults, @"114", NO));
-    assert(!offerAccessibilitySetup(defaults, @"115", YES));
     [defaults removePersistentDomainForName:suite];
-    puts("Accessibility setup appears once per build needing access, including after an update.");
+    puts("Accessibility setup appears once per build that never had access, including after an update.");
+}
+
+static void testStaleAccessibilityEntry(void) {
+    NSString *suite = [@"ArrowKeysTests." stringByAppendingString:NSUUID.UUID.UUIDString];
+    NSUserDefaults *defaults = [[NSUserDefaults alloc] initWithSuiteName:suite];
+    // A first installation, signed either way, starts from a clean entry.
+    assert(shouldClearAccessibilityEntry(defaults, @"115", YES));
+    assert(shouldClearAccessibilityEntry(defaults, @"115", NO));
+    // Each new ad hoc build clears once, and never after it had access.
+    rememberAccess(defaults, @"115", YES);
+    assert(!shouldClearAccessibilityEntry(defaults, @"115", YES));
+    assert(shouldClearAccessibilityEntry(defaults, @"116", YES));
+    assert(offerAccessibilitySetup(defaults, @"116", NO));
+    assert(!shouldClearAccessibilityEntry(defaults, @"116", YES));
+    // The first Developer ID build replaces the ad hoc grant. Later ones keep the access.
+    assert(shouldClearAccessibilityEntry(defaults, @"120", NO));
+    rememberAccess(defaults, @"120", NO);
+    assert(!shouldClearAccessibilityEntry(defaults, @"121", NO));
+    [defaults removePersistentDomainForName:suite];
+    puts("Cleared Accessibility entries only where an earlier ad hoc grant cannot match.");
 }
 
 static void testOpenAtLoginDefault(void) {
@@ -86,6 +109,7 @@ static NSEvent *sendKey(CGKeyCode key, CGEventType type, CGEventFlags flags, boo
 int main(void) {
     @autoreleasepool {
         testAccessibilitySetup();
+        testStaleAccessibilityEntry();
         testKeyboardRestoration();
         testOpenAtLoginDefault();
         [NSApplication sharedApplication];

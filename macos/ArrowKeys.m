@@ -11,11 +11,44 @@ static CFMachPortRef tap;
 
 static NSString *const loginSetupKey = @"OpenAtLoginConfigured";
 
+static NSString *const setupShownKey = @"AccessibilitySetupShownForBuild";
+static NSString *const trustedBuildKey = @"AccessibilityTrustedBuild";
+static NSString *const trustedAdHocKey = @"AccessibilityTrustedBuildAdHoc";
+
+static void rememberAccess(NSUserDefaults *defaults, NSString *build, BOOL adHoc) {
+    if ([[defaults stringForKey:trustedBuildKey] isEqualToString:build] && [defaults boolForKey:trustedAdHocKey] == adHoc) return;
+    [defaults setObject:build forKey:trustedBuildKey];
+    [defaults setBool:adHoc forKey:trustedAdHocKey];
+}
+
+// Offer setup once per build that never had access. A build that had access lost it on purpose
+// or is only briefly unconfirmed, as right after login, so it never shows the guide by itself.
 static BOOL offerAccessibilitySetup(NSUserDefaults *defaults, NSString *build, BOOL trusted) {
-    NSString *const key = @"AccessibilitySetupShownForBuild";
-    if (trusted || [[defaults stringForKey:key] isEqualToString:build]) return NO;
-    [defaults setObject:build forKey:key];
+    if (trusted || [[defaults stringForKey:setupShownKey] isEqualToString:build] ||
+        [[defaults stringForKey:trustedBuildKey] isEqualToString:build])
+        return NO;
+    [defaults setObject:build forKey:setupShownKey];
     return YES;
+}
+
+// macOS ties an ad hoc build's access to that exact build, yet keeps showing its switch as on
+// after an update. On a new build's first launch, before any access check, clear that entry
+// unless access came from a Developer ID build, whose access carries over to this one. The first
+// check then lists ArrowKeys again, switched off, so the guide matches what users see.
+static BOOL shouldClearAccessibilityEntry(NSUserDefaults *defaults, NSString *build, BOOL adHoc) {
+    NSString *trustedBuild = [defaults stringForKey:trustedBuildKey];
+    if ([[defaults stringForKey:setupShownKey] isEqualToString:build] || [trustedBuild isEqualToString:build]) return NO;
+    return adHoc || !trustedBuild || [defaults boolForKey:trustedAdHocKey];
+}
+
+static BOOL clearAccessibilityEntry(NSString *bundleID) {
+    NSTask *task = [NSTask new];
+    task.executableURL = [NSURL fileURLWithPath:@"/usr/bin/tccutil"];
+    task.arguments = @[@"reset", @"Accessibility", bundleID];
+    task.standardOutput = task.standardError = NSFileHandle.fileHandleWithNullDevice;
+    if (![task launchAndReturnError:NULL]) return NO;
+    [task waitUntilExit];
+    return task.terminationStatus == 0;
 }
 
 static void configureLoginDefault(NSUserDefaults *defaults, SMAppServiceStatus status, BOOL (^registerItem)(void)) {
@@ -50,6 +83,18 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 
 #ifndef ARROWKEYS_TEST
 #import "KeyboardMapping.h"
+#import <Security/Security.h>
+
+static BOOL isAdHocSigned(void) {
+    SecCodeRef code = NULL;
+    CFDictionaryRef info = NULL;
+    if (SecCodeCopySelf(kSecCSDefaultFlags, &code) != errSecSuccess) return NO;
+    OSStatus status = SecCodeCopySigningInformation((SecStaticCodeRef)code, kSecCSSigningInformation, &info);
+    CFRelease(code);
+    if (status != errSecSuccess) return NO;
+    NSDictionary *signing = CFBridgingRelease(info);
+    return ([signing[(__bridge NSString *)kSecCodeInfoFlags] unsignedIntValue] & kSecCodeSignatureAdhoc) != 0;
+}
 @interface Controller : NSObject <NSApplicationDelegate, NSMenuDelegate>
 @property(strong) KeyboardMapping *keyboards;
 @property(strong) NSStatusItem *item;
@@ -57,6 +102,9 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
 @property(strong) NSMenuItem *login;
 @property(strong) NSAlert *accessibilityHelp;
 @property(strong) dispatch_source_t bundleWatcher;
+@property(copy) NSString *build;
+@property BOOL adHoc;
+@property BOOL staleEntryCleared;
 @end
 @implementation Controller
 - (void)disconnect {
@@ -77,6 +125,7 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         return;
     }
     self.status.action = nil;
+    rememberAccess(NSUserDefaults.standardUserDefaults, self.build, self.adHoc);
     if (self.accessibilityHelp) [self dismissAccessibilitySetup:nil];
     if (tap && (!CFMachPortIsValid(tap) || !CGEventTapIsEnabled(tap))) {
         [self disconnect];
@@ -113,15 +162,22 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         NSAlert *help = [NSAlert new];
         help.icon = NSApp.applicationIconImage;
         help.messageText = @"Allow ArrowKeys to move the cursor";
-        help.informativeText = @"In Accessibility Settings, turn on ArrowKeys. If it is missing, click + and choose ArrowKeys from Applications.\n\n"
-                               @"Already on after an update? Select ArrowKeys and click −. Then click +, add ArrowKeys from Applications again and turn it on. If macOS asks, choose Quit & Reopen.";
+        NSString *steps = @"In Accessibility Settings, turn on ArrowKeys. If it is missing, click + and choose ArrowKeys from Applications. "
+                          @"This window closes by itself as soon as ArrowKeys has access.";
+        // Without a cleared entry, an earlier version's switch may still look on.
+        help.informativeText = self.staleEntryCleared ? steps : [steps stringByAppendingString:
+            @"\n\nAlready looks on? It belongs to an earlier ArrowKeys. Select ArrowKeys and click −. "
+            @"Then click +, add ArrowKeys from Applications again and turn it on. If macOS asks, choose Quit & Reopen."];
         NSButton *open = [help addButtonWithTitle:@"Open Accessibility Settings"];
         open.target = self;
         open.action = @selector(access:);
         NSButton *later = [help addButtonWithTitle:@"Later"];
         later.target = self;
         later.action = @selector(dismissAccessibilitySetup:);
+        later.keyEquivalent = @"\e";
         [help layout];
+        // Wait behind System Settings instead of hiding, so the steps are still there if access fails.
+        help.window.hidesOnDeactivate = NO;
         [help.window center];
         self.accessibilityHelp = help;
     }
@@ -129,12 +185,14 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     [self.accessibilityHelp.window makeKeyAndOrderFront:nil];
 }
 - (void)access:(id)sender {
-    [self dismissAccessibilitySetup:nil];
-    if (!AXIsProcessTrusted()) {
-        NSDictionary *options = @{(__bridge NSString *)kAXTrustedCheckOptionPrompt: @YES};
-        AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
-    }
+    // Never pass kAXTrustedCheckOptionPrompt. Its system alert stays on screen after access is
+    // granted. AXIsProcessTrusted already lists ArrowKeys in Settings, and the guide closes itself.
     [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
+}
+- (void)accessMayHaveChanged:(NSNotification *)notification {
+    // macOS updates the trust check just after it announces a change, so check again shortly.
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(connect) object:nil];
+    [self performSelector:@selector(connect) withObject:nil afterDelay:0.25];
 }
 - (void)toggleLogin:(id)sender {
     SMAppService *service = SMAppService.mainAppService;
@@ -152,7 +210,17 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     self.login.state = status == SMAppServiceStatusRequiresApproval ? NSControlStateValueMixed :
                        status == SMAppServiceStatusEnabled ? NSControlStateValueOn : NSControlStateValueOff;
 }
+- (void)offerSetupIfNeeded {
+    [self connect];
+    if (!offerAccessibilitySetup(NSUserDefaults.standardUserDefaults, self.build, AXIsProcessTrusted())) return;
+    [self showAccessibilitySetup:nil];
+}
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+    self.build = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+    self.adHoc = isAdHocSigned();
+    // macOS lists ArrowKeys in Accessibility Settings only on a process's first access check.
+    if (shouldClearAccessibilityEntry(NSUserDefaults.standardUserDefaults, self.build, self.adHoc))
+        self.staleEntryCleared = clearAccessibilityEntry(NSBundle.mainBundle.bundleIdentifier);
     self.keyboards = [KeyboardMapping new];
     self.item = [NSStatusBar.systemStatusBar statusItemWithLength:NSVariableStatusItemLength];
     self.item.button.image = menuBarIcon();
@@ -198,9 +266,15 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     }
     [self connect];
     [NSTimer scheduledTimerWithTimeInterval:2 repeats:YES block:^(NSTimer *timer){ [self connect]; }];
-    NSString *build = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
-    if (offerAccessibilitySetup(NSUserDefaults.standardUserDefaults, build, AXIsProcessTrusted()))
-        [self showAccessibilitySetup:nil];
+    // Connect and close the guide as soon as access changes, the user returns, or leaves Settings.
+    [NSDistributedNotificationCenter.defaultCenter addObserver:self selector:@selector(accessMayHaveChanged:)
+        name:@"com.apple.accessibility.api" object:nil suspensionBehavior:NSNotificationSuspensionBehaviorDeliverImmediately];
+    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(accessMayHaveChanged:)
+        name:NSApplicationDidBecomeActiveNotification object:nil];
+    [NSWorkspace.sharedWorkspace.notificationCenter addObserver:self selector:@selector(accessMayHaveChanged:)
+        name:NSWorkspaceDidActivateApplicationNotification object:nil];
+    // Right after login or installation, macOS can take a moment to confirm existing access.
+    [self performSelector:@selector(offerSetupIfNeeded) withObject:nil afterDelay:3];
 }
 @end
 int main(void) {
