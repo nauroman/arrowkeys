@@ -18,7 +18,9 @@ const cases = [
 ];
 const fixture = 'alpha bravo charlie delta\nalpha bravo charlie delta\nalpha bravo charlie delta';
 const sample = document.querySelector('#sample'), prompt = document.querySelector('#prompt');
-const run = new URLSearchParams(location.search).get('run') || 'manual';
+// Launch Services can drop the query when opening a file URL in Safari.
+const run = new URLSearchParams(location.search).get('run') ||
+  location.pathname.match(/\/Safari-([a-zA-Z0-9]+)\.html$/)?.[1] || 'manual';
 let index = 0, reference, phase = 'idle', pending = false, observations = [];
 function arm(forReference) {
   phase = forReference ? 'reference' : 'shortcut';

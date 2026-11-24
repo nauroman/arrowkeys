@@ -11,14 +11,14 @@ trap 'rm -rf "$stage"' EXIT
 app="$stage/ArrowKeys Store.app"
 contents="$app/Contents"
 id=com.nauroman.ArrowKeys.Store
-mkdir -p "$contents/MacOS" "$contents/Resources"
+mkdir -p "$contents/MacOS" "$contents/Resources" "$contents/Helpers"
 cp "$repo/macos/Info.plist" "$contents/Info.plist"
 cp "$repo/assets/ArrowKeys.icns" "$repo/assets/ArrowKeysMenuTemplate.svg" "$repo/LICENSE" "$contents/Resources/"
 plist=/usr/libexec/PlistBuddy
 info="$contents/Info.plist"
 "$plist" -c "Set :CFBundleIdentifier $id" -c 'Set :CFBundleName ArrowKeys Store' \
     -c 'Add :CFBundleDisplayName string ArrowKeys Store' -c 'Set :CFBundleShortVersionString 1.0' \
-    -c "Set :CFBundleVersion ${MAC_STORE_BUILD_NUMBER:-1}" -c 'Set :LSMinimumSystemVersion 15.2' \
+    -c "Set :CFBundleVersion ${MAC_STORE_BUILD_NUMBER:-2}" -c 'Set :LSMinimumSystemVersion 15.2' \
     -c 'Add :LSApplicationCategoryType string public.app-category.productivity' \
     -c 'Add :LSMultipleInstancesProhibited bool true' -c 'Add :CFBundleSupportedPlatforms array' \
     -c 'Add :CFBundleSupportedPlatforms:0 string MacOSX' \
@@ -27,6 +27,8 @@ xcrun --sdk macosx clang -arch arm64 -arch x86_64 -mmacosx-version-min=15.2 -fob
     -Wall -Wextra -Wno-unused-parameter -Werror=implicit-function-declaration \
     -framework Cocoa -framework Carbon -framework ApplicationServices -framework ServiceManagement -framework IOKit \
     "$repo/macos/StoreApp.m" -o "$contents/MacOS/ArrowKeys"
+xcrun --sdk macosx clang -arch arm64 -arch x86_64 -mmacosx-version-min=15.2 -fobjc-arc -Os \
+    -framework Cocoa "$repo/macos/SetupRelaunch.m" -o "$contents/Helpers/SetupRelaunch"
 entitlements="$stage/Store.entitlements"
 cp "$repo/packaging/mac-app-store/ArrowKeys.entitlements" "$entitlements"
 identity=${MAC_APP_SIGN_IDENTITY:--}
@@ -44,6 +46,8 @@ if [[ "$mode" == --distribution ]]; then
         -c "Add :com.apple.developer.team-identifier string $team" "$entitlements"
     cp "$MAC_APP_STORE_PROFILE" "$contents/embedded.provisionprofile"
 fi
+codesign --force --options runtime --sign "$identity" --identifier "$id.SetupRelaunch" \
+    --entitlements "$repo/packaging/mac-app-store/Relaunch.entitlements" "$contents/Helpers/SetupRelaunch"
 codesign --force --options runtime --sign "$identity" --entitlements "$entitlements" "$app"
 codesign --verify --strict --verbose=2 "$app"
 architectures=" $(xcrun lipo -archs "$contents/MacOS/ArrowKeys") "

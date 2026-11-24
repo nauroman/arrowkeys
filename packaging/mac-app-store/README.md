@@ -1,6 +1,6 @@
 # ArrowKeys for the Mac App Store
 
-The development build uses the same eight physical key positions as the GitHub edition. It has its own bundle identifier, `com.nauroman.ArrowKeys.Store`. Quit the GitHub edition before starting a test. Allow cursor control for **ArrowKeys Store** when macOS prompts. You can reopen setup from its menu.
+The development build uses the same eight physical key positions as the GitHub edition. It has its own bundle identifier, `com.nauroman.ArrowKeys.Store`. Quit the GitHub edition before starting a test. **Open at Login** is checked at first setup. Choose **Enable Navigation** and allow cursor control for **ArrowKeys Store** when macOS prompts. Switch back to your editor. ArrowKeys reopens once if the running process still sees the old permission. **Set Up Cursor Control… → Restart ArrowKeys** also applies a permission you have already granted.
 
 ## Build on macOS
 
@@ -13,7 +13,7 @@ Both ZIP files contain universal binaries for macOS 15.2 or newer. The developme
 
 ## Test a physical Mac
 
-Extract **ArrowKeys-MacBook-Check.zip** and open **Check on MacBook.command**. The check creates its own application copy and test documents. TextEdit and the code editor use saved digit markers to compare each cursor position with the ordinary arrow command. Safari compares the actual selection in a local text area. The first installed editor in the list is Xcode, Visual Studio Code, Cursor or BBEdit. Set `ARROWKEYS_TEST_EDITOR` to select another installed editor.
+Extract **ArrowKeys-MacBook-Check.zip** and open **Check on MacBook.command**. The check creates its own application copy and test documents. TextEdit and the code editor use saved digit markers to compare each cursor position with the ordinary arrow command. Safari compares the actual selection in a local text area. The kit looks for Xcode, Visual Studio Code, Cursor and BBEdit in order, then uses the built-in Script Editor. Set `ARROWKEYS_TEST_EDITOR` to select another installed editor.
 
 Follow the prompts to move the test copy to Trash and toggle Caps Lock twice in TextEdit. The results folder contains the per-key measurements, per-device before/after snapshots and the final typing check. The separate CI job tests shortcut delivery and bundle removal before permission is granted. Only the physical check exercises the entire keyboard path. [Candidate builds](https://github.com/nauroman/arrowkeys/actions/workflows/mac-app-store.yml)
 

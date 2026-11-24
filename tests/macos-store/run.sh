@@ -49,6 +49,28 @@ for ((i=0;i<40;i++)); do "$kit/StoreChecks" --store-running || break; sleep 0.25
 if "$kit/StoreChecks" --store-running; then echo 'Production app remained running after removal.' >&2; exit 1; fi
 hidutil property --get UserKeyMapping > "$stage/after"
 cmp "$stage/before" "$stage/after"
+# Exercise the production onboarding buttons and the one-shot relaunch in a sandboxed fixture.
+ditto "$stage/Removed.app" "$app"
+xcrun clang -fobjc-arc -framework Cocoa -framework Carbon -framework IOKit \
+    -framework ApplicationServices -framework ServiceManagement "$src/SetupChecks.m" -o "$app/Contents/MacOS/ArrowKeys"
+codesign --force --sign - --entitlements "$repo/packaging/mac-app-store/ArrowKeys.entitlements" "$app"
+open -n --stdout "$stage/setup.log" --stderr "$stage/setup.err" "$app" --args --check-first-launch
+for ((i=0;i<80;i++)); do grep -q 'Restarting PID' "$stage/setup.log" 2>/dev/null && break; sleep 0.25; done
+if ! grep -q 'Restarting PID' "$stage/setup.log"; then cat "$stage/setup.err" >&2; exit 1; fi
+cat "$stage/setup.log"
+old_pid=$(awk '/Restarting PID/{print $NF; exit}' "$stage/setup.log")
+new_pid=''
+for ((i=0;i<80;i++)); do
+    new_pid=$("$kit/StoreChecks" --store-pid || true)
+    [[ -n "$new_pid" && "$new_pid" != "$old_pid" ]] && break
+    sleep 0.25
+done
+[[ -n "$new_pid" && "$new_pid" != "$old_pid" ]] || { cat "$stage/setup.err" >&2; exit 1; }
+[[ "$(ps -p "$new_pid" -o command=)" -ef "$app/Contents/MacOS/ArrowKeys" ]]
+kill -TERM "$new_pid"
+for ((i=0;i<40;i++)); do "$kit/StoreChecks" --store-running || break; sleep 0.25; done
+if "$kit/StoreChecks" --store-running; then exit 1; fi
+echo 'A fresh sandboxed instance opened after the original process exited.'
 receiver="$stage/Registration Check.app"
 mkdir -p "$receiver/Contents/MacOS"
 cp "$stage/Removed.app/Contents/Info.plist" "$receiver/Contents/"

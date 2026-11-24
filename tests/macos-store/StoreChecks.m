@@ -143,7 +143,8 @@ static int checkLiveRemoval(void) {
 }
 
 static NSString *readTestFile(const char *path) {
-    return [NSString stringWithContentsOfFile:[NSString stringWithUTF8String:path] encoding:NSUTF8StringEncoding error:NULL];
+    NSString *text = [NSString stringWithContentsOfFile:[NSString stringWithUTF8String:path] encoding:NSUTF8StringEncoding error:NULL];
+    return [[text stringByReplacingOccurrencesOfString:@"\r\n" withString:@"\n"] stringByReplacingOccurrencesOfString:@"\r" withString:@"\n"];
 }
 
 static int checkActiveMapping(const char *baseline, const char *active) {
@@ -233,6 +234,12 @@ int main(int argc, const char **argv) {
         if (argc == 4 && strcmp(argv[1], "--check-safari") == 0) return checkSafari(argv[2], argv[3]);
         if (argc == 4 && strcmp(argv[1], "--check-active") == 0) return checkActiveMapping(argv[2], argv[3]);
         if (argc != 2) return 2;
+        if (strcmp(argv[1], "--store-pid") == 0) {
+            NSArray *apps = [NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.nauroman.ArrowKeys.Store"];
+            if (apps.count != 1) return 1;
+            printf("%d\n", ((NSRunningApplication *)apps.firstObject).processIdentifier);
+            return 0;
+        }
         if (strcmp(argv[1], "--store-running") == 0)
             return [NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.nauroman.ArrowKeys.Store"].count ? 0 : 1;
         if (strcmp(argv[1], "--github-running") == 0)

@@ -31,11 +31,16 @@ if ! "$checker" --check-active "$report/before.json" "$report/active.json"; then
     passed=false
 fi
 exercise_editor() {
-    local editor=$1 kind file
+    local editor=$1 kind file fixture="$kit/editor-fixture.txt" extension=txt
+    if [[ $editor == 'Script Editor' ]]; then
+        extension=applescript
+        fixture="$report/Script Editor-original.applescript"
+        sed 's/^alpha/-- ha/' "$kit/editor-fixture.txt" > "$fixture"
+    fi
     printf '\nChecking %s. Type each digit AFTER releasing all keys of the preceding shortcut.\n' "$editor"
     for kind in reference caps; do
-        file="$report/$editor-$kind.txt"
-        cp "$kit/editor-fixture.txt" "$file"
+        file="$report/$editor-$kind.$extension"
+        cp "$fixture" "$file"
         echo 'At the start press Command+Up, Down, Right, Right, Right, then type 0.'
         if [[ $kind == reference ]]; then
             echo 'Ordinary keys: Left 1, Down 2, Right 3, Up 4, Command+Left 5, Command+Right 6, Option+Left 7, Option+Right 8.'
@@ -46,13 +51,13 @@ exercise_editor() {
         open -a "$editor" "$file"
         read -r -p 'Press Return after saving. '
     done
-    "$checker" --compare-editors "$report/$editor-reference.txt" "$report/$editor-caps.txt" "$kit/editor-fixture.txt" || passed=false
+    "$checker" --compare-editors "$report/$editor-reference.$extension" "$report/$editor-caps.$extension" "$fixture" || passed=false
 }
 exercise_editor TextEdit
 printf '\nChecking Safari. Press Start check and follow each prompt. Save results to Downloads.\n'
 # mktemp above produces an alphanumeric run ID. The URL resolves inside this copy of the kit.
 cp "$kit/browser.html" "$report/Safari-$run.html"
-open -a Safari "file://${report// /%20}/Safari-$run.html?run=$run"
+open -a Safari "$report/Safari-$run.html"
 read -r -p 'Press Return when Safari has saved the report. '
 safari="$HOME/Downloads/ArrowKeys-Safari-$run.json"
 if [[ -f "$safari" ]]; then
@@ -64,7 +69,7 @@ else
 fi
 editor=${ARROWKEYS_TEST_EDITOR:-}
 if [[ -z $editor ]]; then
-    for candidate in Xcode 'Visual Studio Code' Cursor BBEdit; do
+    for candidate in Xcode 'Visual Studio Code' Cursor BBEdit 'Script Editor'; do
         if open -Ra "$candidate" >/dev/null 2>&1; then editor=$candidate; break; fi
     done
 fi
