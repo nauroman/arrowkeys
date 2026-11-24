@@ -37,12 +37,58 @@ jobs:
     if: "!startsWith(github.ref, 'refs/tags/windows-v')"
     # Run the universal app on Intel for PRs and releases, and Apple silicon on main.
     runs-on: ${{ github.ref == 'refs/heads/main' && 'macos-15' || 'macos-15-intel' }}
+    # Release tags, and manual runs on main for a dry run, sign with Developer ID and notarize.
+    # Only these runs can read the signing secrets in the mac-release environment.
+    environment: ${{ (startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && 'mac-release' || '' }}
+    env:
+      SIGN: ${{ (startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && '1' || '' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Load the Developer ID certificates into a temporary keychain
+        if: env.SIGN == '1'
+        env:
+          APP_P12: ${{ secrets.MAC_APP_P12 }}
+          INSTALLER_P12: ${{ secrets.MAC_INSTALLER_P12 }}
+          P12_PASSWORD: ${{ secrets.MAC_P12_PASSWORD }}
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password=$(openssl rand -hex 24)
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          for certificate in APP_P12 INSTALLER_P12; do
+            printenv "$certificate" | base64 --decode > "$RUNNER_TEMP/identity.p12"
+            security import "$RUNNER_TEMP/identity.p12" -k "$keychain" -P "$P12_PASSWORD" \
+              -T /usr/bin/codesign -T /usr/bin/productbuild
+            rm "$RUNNER_TEMP/identity.p12"
+          done
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain" >/dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          identity() { security find-identity -v -p basic "$keychain" | sed -n "s/.*\"\($1: .* (B7UFH23G3L)\)\"\$/\1/p" | head -1; }
+          app=$(identity 'Developer ID Application')
+          installer=$(identity 'Developer ID Installer')
+          test -n "$app" && test -n "$installer"
+          printenv ASC_API_KEY_P8 | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+          { echo "MAC_APP_IDENTITY=$app"; echo "MAC_INSTALLER_IDENTITY=$installer"
+            echo "ASC_KEY_PATH=$RUNNER_TEMP/AuthKey.p8"; } >> "$GITHUB_ENV"
       - run: bash packaging/build-mac.sh dist
+      - name: Notarize the package with Apple
+        if: env.SIGN == '1'
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: bash packaging/notarize-mac.sh dist/ArrowKeys-macOS.pkg
       - run: bash tests/macos-install.sh "$PWD/macos"
       - name: Test install, cursor movement, uninstall and reinstall on a clean Mac
+        env:
+          MAC_EXPECT_SIGNED: ${{ env.SIGN }}
         run: bash tests/macos-lifecycle.sh "$PWD/dist/ArrowKeys-macOS.pkg"
+      - name: Remove the signing keychain and API key
+        if: always() && env.SIGN == '1'
+        run: |
+          security delete-keychain "$RUNNER_TEMP/signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: macos
@@ -103,4 +149,4 @@ jobs:
               --notes "Download ArrowKeys-Windows-Setup.exe to install ArrowKeys for your Windows account. This version includes the new ArrowKeys icon and links to the [source code]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/tree/$GITHUB_REF_NAME) and verified downloads in the installer. The [Windows installation and removal tests and ClamAV scan]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID) passed. The standalone installer is unsigned. Use SHA256SUMS.txt and the GitHub build provenance to verify your download." ./*
             exit 0
           fi
-          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --title "ArrowKeys $GITHUB_REF_NAME" --notes "Download ArrowKeys-Windows-Setup.exe for Windows or ArrowKeys-macOS.pkg for Mac. The Mac package works offline and opens in Apple's Installer. Both downloads passed the [installation tests and ClamAV scan]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID). The assets include SHA-256 checksums and have GitHub build provenance. The ArrowKeys package itself is unsigned. See the README for permissions and verification." ./*
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --verify-tag --title "ArrowKeys $GITHUB_REF_NAME" --notes "Download ArrowKeys-Windows-Setup.exe for Windows or ArrowKeys-macOS.pkg for Mac. The Mac package works offline and opens in Apple's Installer. Both downloads passed the [installation tests and ClamAV scan]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID). The assets include SHA-256 checksums and have GitHub build provenance. The Mac package is signed with Developer ID and notarized by Apple. See the README for permissions and verification." ./*

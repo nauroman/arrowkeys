@@ -25,11 +25,11 @@ Open a text editor and hold **Caps Lock**. **J/K/L/I** move left/down/right/up, 
 
 The native installer is about **1.1 MB** and supports Apple silicon and Intel. The older **43.4 MB** package from v1.0.1 bundled Karabiner-Elements.
 
-**If the installer says “Not Opened”**, click **Done**. The package is unsigned and has no Apple notarization. After verifying your GitHub download, open **System Settings → Privacy & Security**, scroll to **Security**, and click **Open Anyway** for **ArrowKeys-macOS.pkg**. [Verify your download](#verify-a-download) · [Apple’s instructions](https://support.apple.com/en-us/102445)
+The package is signed with Developer ID and notarized by Apple, so it opens in Installer without extra steps. [Verify your download](#verify-a-download)
 
 The installer opens ArrowKeys for the signed-in user. If the installed version needs permission, it shows a setup guide. Choose **Open Accessibility Settings** and turn on **ArrowKeys** to let it move the cursor in other apps. The guide closes by itself once access is on. You can reopen the guide from **Set Up Accessibility…** in the four-arrow menu while access is missing. Once the menu shows **Navigation active**, try **Caps Lock + J** in TextEdit to move the cursor one character left. ArrowKeys configures Caps Lock on each keyboard, including keyboards connected later. If nobody was signed in during installation, open **Applications → ArrowKeys** after signing in.
 
-macOS ties Accessibility access to each build of this unsigned app, so a new version asks once more. It removes the switch left over from the previous version first, so you only need to turn ArrowKeys on again. If the switch still looks on while the menu asks for access, remove the ArrowKeys entry with **−** in **System Settings → Privacy & Security → Accessibility**, then use **+** to add the installed **Applications → ArrowKeys** and turn it on. If the menu says **Keyboard connection unavailable — retrying**, macOS has granted Accessibility and ArrowKeys is retrying the keyboard connection automatically.
+Updates keep Accessibility access. Coming from version 1.1.4 or earlier, which were not signed, ArrowKeys asks once more. It removes the old switch first, so you only need to turn ArrowKeys on again. If the switch still looks on while the menu asks for access, remove the ArrowKeys entry with **−** in **System Settings → Privacy & Security → Accessibility**, then use **+** to add the installed **Applications → ArrowKeys** and turn it on. If the menu says **Keyboard connection unavailable — retrying**, macOS has granted Accessibility and ArrowKeys is retrying the keyboard connection automatically.
 
 **Open at Login** is on by default. ArrowKeys registers itself on first launch and starts automatically at subsequent sign-ins. To turn it off, uncheck **Open at Login** in the four-arrow menu. If the menu shows **Approval Required**, select that item to open the macOS Login Items settings.
 
@@ -58,7 +58,7 @@ gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
 gh attestation verify ArrowKeys-macOS.pkg --repo nauroman/arrowkeys
 ```
 
-The Windows installer also has no publisher signature. You can inspect the keyboard handlers and read how each edition processes input. [Windows hotkeys](arrowkeys.ahk) · [macOS handler](macos/ArrowKeys.m) · [Privacy](PRIVACY.md)
+The Windows installer has no publisher signature. You can inspect the keyboard handlers and read how each edition processes input. [Windows hotkeys](arrowkeys.ahk) · [macOS handler](macos/ArrowKeys.m) · [Privacy](PRIVACY.md)
 
 ### Windows setup from source
 
