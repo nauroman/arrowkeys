@@ -59,6 +59,8 @@ for ((i=0;i<80;i++)); do grep -q 'Restarting PID' "$stage/setup.log" 2>/dev/null
 if ! grep -q 'Restarting PID' "$stage/setup.log"; then cat "$stage/setup.err" >&2; exit 1; fi
 cat "$stage/setup.log"
 old_pid=$(awk '/Restarting PID/{print $NF; exit}' "$stage/setup.log")
+cp "$src_fixture" "$stage/Returning to the editor.txt"
+open -b com.apple.TextEdit "$stage/Returning to the editor.txt"
 new_pid=''
 for ((i=0;i<80;i++)); do
     new_pid=$("$kit/StoreChecks" --store-pid || true)
@@ -70,7 +72,7 @@ done
 kill -TERM "$new_pid"
 for ((i=0;i<40;i++)); do "$kit/StoreChecks" --store-running || break; sleep 0.25; done
 if "$kit/StoreChecks" --store-running; then exit 1; fi
-echo 'A fresh sandboxed instance opened after the original process exited.'
+echo 'Returning from System Settings to TextEdit automatically opened a fresh sandboxed instance.'
 receiver="$stage/Registration Check.app"
 mkdir -p "$receiver/Contents/MacOS"
 cp "$stage/Removed.app/Contents/Info.plist" "$receiver/Contents/"

@@ -18,7 +18,7 @@ plist=/usr/libexec/PlistBuddy
 info="$contents/Info.plist"
 "$plist" -c "Set :CFBundleIdentifier $id" -c 'Set :CFBundleName ArrowKeys Store' \
     -c 'Add :CFBundleDisplayName string ArrowKeys Store' -c 'Set :CFBundleShortVersionString 1.0' \
-    -c "Set :CFBundleVersion ${MAC_STORE_BUILD_NUMBER:-2}" -c 'Set :LSMinimumSystemVersion 15.2' \
+    -c "Set :CFBundleVersion ${MAC_STORE_BUILD_NUMBER:-3}" -c 'Set :LSMinimumSystemVersion 15.2' \
     -c 'Add :LSApplicationCategoryType string public.app-category.productivity' \
     -c 'Add :LSMultipleInstancesProhibited bool true' -c 'Add :CFBundleSupportedPlatforms array' \
     -c 'Add :CFBundleSupportedPlatforms:0 string MacOSX' \

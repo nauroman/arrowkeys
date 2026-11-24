@@ -1,6 +1,8 @@
 # ArrowKeys for the Mac App Store
 
-The development build uses the same eight physical key positions as the GitHub edition. It has its own bundle identifier, `com.nauroman.ArrowKeys.Store`. Quit the GitHub edition before starting a test. **Open at Login** is checked at first setup. Choose **Enable Navigation** and allow cursor control for **ArrowKeys Store** when macOS prompts. Switch back to your editor. ArrowKeys reopens once if the running process still sees the old permission. **Set Up Cursor Control… → Restart ArrowKeys** also applies a permission you have already granted.
+The development build uses the same eight physical key positions as the GitHub edition. It has its own bundle identifier, `com.nauroman.ArrowKeys.Store`. Quit the GitHub edition before starting a test. **Open at Login** is checked at first setup. Choose **Enable Navigation** (or **Save** when updating the login setting). If cursor control needs approval, ArrowKeys opens **System Settings**. Allow **ArrowKeys Store** there, then switch back to your editor. ArrowKeys reopens if macOS still reports the previous permission. Check for **Navigation active** in the four-arrow menu.
+
+While access is pending, the setup window can reopen the permission settings, show the running copy in Finder, or restart it. Choose **Later** to dismiss the guide. **Set Up Cursor Control…** in the menu brings it back.
 
 ## Build on macOS
 

@@ -5,6 +5,12 @@
 #include <signal.h>
 
 static NSString *const loginChoiceRecorded = @"StoreLoginChoiceRecorded";
+static NSString *const deferredPermissionBuild = @"DeferredCursorPermissionForBuild";
+static NSString *const openedPermissionBuild = @"OpenedCursorPermissionForBuild";
+
+static NSString *currentBuild(void) {
+    return [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+}
 
 static BOOL loginRegistered(SMAppServiceStatus status) {
     return status == SMAppServiceStatusEnabled || status == SMAppServiceStatusRequiresApproval;
@@ -24,12 +30,12 @@ static NSButton *newLoginCheckbox(void) {
     KeyboardMapping *_keyboards;
     StoreHotKeys *_hotKeys;
     NSStatusItem *_item;
-    NSMenuItem *_status, *_login;
+    NSMenuItem *_status, *_login, *_setupItem;
     NSAlert *_setupAlert;
     NSButton *_loginChoice;
     NSFileHandle *_relaunchWriter;
     dispatch_source_t _bundleWatcher, _termination;
-    BOOL _restorePending, _suspended, _ending, _waitingForEditor;
+    BOOL _restorePending, _suspended, _ending, _sawPermissionSettings, _permissionGuide;
 }
 
 - (void)stopNavigation {
@@ -39,6 +45,8 @@ static NSButton *newLoginCheckbox(void) {
 
 - (void)refresh {
     if (_ending) return;
+    BOOL canPost = [self cursorPermissionGranted];
+    if (canPost && _permissionGuide) [self dismissSetup:nil];
     NSString *unavailable = nil;
     if (!_bundleWatcher) unavailable = @"Could not watch the installed application";
     else if (_suspended) unavailable = @"Navigation paused";
@@ -46,7 +54,7 @@ static NSButton *newLoginCheckbox(void) {
         unavailable = @"Set Up ArrowKeys…";
     else if ([NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.nauroman.ArrowKeys"].count)
         unavailable = @"Quit the GitHub edition to use ArrowKeys";
-    else if (!CGPreflightPostEventAccess()) unavailable = @"Allow Cursor Control…";
+    else if (!canPost) unavailable = @"Allow Cursor Control…";
     else if (IsSecureEventInputEnabled()) unavailable = @"Paused during secure keyboard entry";
     else if (_restorePending && ![_keyboards restore]) unavailable = @"Restoring the previous keyboard setting…";
     else {
@@ -58,10 +66,13 @@ static NSButton *newLoginCheckbox(void) {
             @"macOS could not apply the Caps Lock assignment" : @"Waiting for a keyboard";
     }
     if (unavailable) [self stopNavigation];
-    _status.title = unavailable ?: @"Navigation active";
+    NSString *title = unavailable ?: @"Navigation active";
+    if (![_status.title isEqual:title]) NSLog(@"Navigation status: %@", title);
+    _status.title = title;
     _status.action = ([unavailable isEqual:@"Allow Cursor Control…"] || [unavailable isEqual:@"Set Up ArrowKeys…"]) ?
         @selector(setup:) : NULL;
-    if (!unavailable) _waitingForEditor = NO;
+    _setupItem.hidden = canPost && [NSUserDefaults.standardUserDefaults boolForKey:@"CompletedSetup"] &&
+                        [NSUserDefaults.standardUserDefaults boolForKey:loginChoiceRecorded];
 }
 
 - (void)setup:(id)sender {
@@ -73,28 +84,28 @@ static NSButton *newLoginCheckbox(void) {
     NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
     BOOL first = ![defaults boolForKey:@"CompletedSetup"];
     BOOL chooseLogin = first || ![defaults boolForKey:loginChoiceRecorded];
+    if (!chooseLogin) {
+        if (![self cursorPermissionGranted]) [self showPermissionGuide];
+        return;
+    }
     NSAlert *alert = [NSAlert new];
     alert.icon = NSApp.applicationIconImage;
-    alert.messageText = first ? @"Use Caps Lock for navigation" :
-        chooseLogin ? @"Choose when ArrowKeys opens" : @"Allow ArrowKeys to move the cursor";
+    alert.messageText = first ? @"Use Caps Lock for navigation" : @"Choose when ArrowKeys opens";
     alert.informativeText = first ?
-        @"Hold Caps Lock or Option and press J, K, L or I for the arrows, U or O for line ends, and H or semicolon for words. Allow keyboard events when macOS asks, then switch back to your editor. ArrowKeys may reopen once to apply your permission." :
-        chooseLogin ? @"Open the menu bar app automatically when you sign in to your Mac. You can change this choice in its menu. If this build needs cursor control, macOS will ask when you save." :
-        @"In System Settings → Privacy & Security, allow ArrowKeys Store to send keyboard events. Then return to your editor. If you already allowed this copy, choose Restart ArrowKeys.";
-    NSButton *enable = [alert addButtonWithTitle:first ? @"Enable Navigation" : chooseLogin ? @"Save" : @"Open Permission Settings"];
+        @"Hold Caps Lock or Option and press J, K, L or I for the arrows, U or O for line ends, and H or semicolon for words. Choose Enable Navigation to set up cursor control in System Settings." :
+        @"Open the menu bar app automatically when you sign in to your Mac. You can change this choice in its menu. If cursor control needs permission, System Settings will open when you save.";
+    NSButton *enable = [alert addButtonWithTitle:first ? @"Enable Navigation" : @"Save"];
     enable.target = self;
     enable.action = @selector(enable:);
     NSButton *later = [alert addButtonWithTitle:@"Later"];
     later.target = self;
     later.action = @selector(dismissSetup:);
-    if (chooseLogin) {
-        _loginChoice = newLoginCheckbox();
-        alert.accessoryView = _loginChoice;
-    } else if (!CGPreflightPostEventAccess()) {
-        NSButton *restart = [alert addButtonWithTitle:@"Restart ArrowKeys"];
-        restart.target = self;
-        restart.action = @selector(restartForPermission:);
-    }
+    _loginChoice = newLoginCheckbox();
+    alert.accessoryView = _loginChoice;
+    [self presentSetup:alert];
+}
+
+- (void)presentSetup:(NSAlert *)alert {
     [alert layout];
     [alert.window center];
     _setupAlert = alert;
@@ -102,9 +113,48 @@ static NSButton *newLoginCheckbox(void) {
     [alert.window makeKeyAndOrderFront:nil];
 }
 
+- (void)showPermissionGuide {
+    if (_permissionGuide) return;
+    NSAlert *alert = [NSAlert new];
+    alert.icon = NSApp.applicationIconImage;
+    alert.messageText = @"Allow ArrowKeys Store to move the cursor";
+    NSOperatingSystemVersion os = NSProcessInfo.processInfo.operatingSystemVersion;
+    NSString *instructions;
+    if (os.majorVersion < 27)
+        instructions = @"In Privacy & Security → Accessibility, turn on ArrowKeys Store. If it is missing, click + and select this app.";
+    else if (os.majorVersion == 27 && os.minorVersion < 3)
+        instructions = @"In Privacy & Security → Device Control and Data Access, allow ArrowKeys Store. If it is missing, click + and select this app.";
+    else
+        instructions = @"In Privacy & Security, follow the macOS prompt to allow ArrowKeys Store to send navigation keys to your editor.";
+    alert.informativeText = [instructions stringByAppendingString:@"\n\nSwitch back to your editor after allowing access. ArrowKeys will reopen if needed. If you already allowed this copy, choose Restart ArrowKeys."];
+    NSButton *settings = [alert addButtonWithTitle:@"Open Permission Settings"];
+    settings.target = self;
+    settings.action = @selector(openPermissionSettings:);
+    NSButton *restart = [alert addButtonWithTitle:@"Restart ArrowKeys"];
+    restart.target = self;
+    restart.action = @selector(restartForPermission:);
+    NSButton *later = [alert addButtonWithTitle:@"Later"];
+    later.target = self;
+    later.action = @selector(dismissSetup:);
+    NSButton *reveal = [NSButton buttonWithTitle:@"Show This App in Finder" target:self action:@selector(revealApp:)];
+    [reveal sizeToFit];
+    alert.accessoryView = reveal;
+    _permissionGuide = YES;
+    [self presentSetup:alert];
+}
+
+- (void)revealApp:(id)sender {
+    [NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:@[NSBundle.mainBundle.bundleURL]];
+}
+
 - (void)dismissSetup:(id)sender {
     if (sender && _loginChoice && [NSUserDefaults.standardUserDefaults boolForKey:@"CompletedSetup"])
         [NSUserDefaults.standardUserDefaults setBool:YES forKey:loginChoiceRecorded];
+    if (sender && _permissionGuide) {
+        [NSUserDefaults.standardUserDefaults setObject:currentBuild() forKey:deferredPermissionBuild];
+    }
+    _permissionGuide = NO;
+    _sawPermissionSettings = NO;
     [_setupAlert.window orderOut:nil];
     _setupAlert = nil;
     _loginChoice = nil;
@@ -118,15 +168,37 @@ static NSButton *newLoginCheckbox(void) {
     [self dismissSetup:nil];
     if (first) [defaults setBool:YES forKey:@"CompletedSetup"];
     if (chooseLogin) [self setLoginEnabled:openAtLogin];
-    if (!CGPreflightPostEventAccess()) [self requestCursorPermission:!chooseLogin];
+    if (![self cursorPermissionGranted]) {
+        [self showPermissionGuide];
+        [self openPermissionSettings:nil];
+    }
     [self refresh];
 }
 
-- (void)requestCursorPermission:(BOOL)openSettings {
-    _waitingForEditor = YES;
-    CGRequestPostEventAccess();
-    if (openSettings && !CGPreflightPostEventAccess())
-        [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
+- (BOOL)cursorPermissionGranted { return CGPreflightPostEventAccess(); }
+
+- (void)requestSystemCursorAccess { CGRequestPostEventAccess(); }
+
+- (void)openPermissionSettings:(id)sender {
+    if ([self cursorPermissionGranted]) { [self refresh]; return; }
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    [defaults removeObjectForKey:deferredPermissionBuild];
+    [defaults setObject:currentBuild() forKey:openedPermissionBuild];
+    _sawPermissionSettings = NO;
+    [self requestSystemCursorAccess];
+    if ([self cursorPermissionGranted]) { [self refresh]; return; }
+    [self openSystemPrivacyPane];
+}
+
+- (void)openSystemPrivacyPane {
+    NSWorkspace *workspace = NSWorkspace.sharedWorkspace;
+    NSURL *privacy = [NSURL URLWithString:@"x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_Accessibility"];
+    if (![workspace openURL:privacy]) {
+        NSURL *settings = [workspace URLForApplicationWithBundleIdentifier:@"com.apple.systempreferences"];
+        if (settings) [workspace openApplicationAtURL:settings configuration:NSWorkspaceOpenConfiguration.configuration completionHandler:nil];
+    }
+    if ([workspace.frontmostApplication.bundleIdentifier isEqual:@"com.apple.systempreferences"])
+        _sawPermissionSettings = YES;
 }
 
 - (void)setLoginEnabled:(BOOL)enabled {
@@ -159,7 +231,6 @@ static NSButton *newLoginCheckbox(void) {
 - (void)resume:(NSNotification *)note { _suspended = NO; [self refresh]; }
 - (void)restartForPermission:(id)sender {
     if (_ending || _relaunchWriter) return;
-    _waitingForEditor = NO;
     NSPipe *pipe = [NSPipe pipe];
     NSTask *helper = [NSTask new];
     helper.executableURL = [NSBundle.mainBundle.bundleURL URLByAppendingPathComponent:@"Contents/Helpers/SetupRelaunch"];
@@ -174,12 +245,26 @@ static NSButton *newLoginCheckbox(void) {
 - (void)focusChanged:(NSNotification *)note {
     [_hotKeys cancelRepeat];
     NSRunningApplication *next = note.userInfo[NSWorkspaceApplicationKey];
-    if (!_waitingForEditor || next.activationPolicy != NSApplicationActivationPolicyRegular ||
-        [next.bundleIdentifier isEqual:@"com.apple.systempreferences"]) return;
-    _waitingForEditor = NO;
+    if (!_permissionGuide || !next) return;
+    if ([next.bundleIdentifier isEqual:@"com.apple.systempreferences"]) { _sawPermissionSettings = YES; return; }
+    if (!_sawPermissionSettings || [next.bundleIdentifier isEqual:@"com.apple.finder"]) return;
+    if (next.activationPolicy != NSApplicationActivationPolicyRegular && next.processIdentifier != getpid()) return;
+    _sawPermissionSettings = NO;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, NSEC_PER_SEC), dispatch_get_main_queue(), ^{
-        if (!self->_ending && !CGPreflightPostEventAccess()) [self restartForPermission:nil];
+        if (!self->_ending && self->_permissionGuide && !self->_sawPermissionSettings && ![self cursorPermissionGranted])
+            [self restartForPermission:nil];
     });
+}
+
+- (void)resumeSetupIfNeeded {
+    NSUserDefaults *defaults = NSUserDefaults.standardUserDefaults;
+    if (![defaults boolForKey:@"CompletedSetup"] || ![defaults boolForKey:loginChoiceRecorded]) {
+        [self setup:nil];
+        return;
+    }
+    if ([self cursorPermissionGranted] || [[defaults stringForKey:deferredPermissionBuild] isEqual:currentBuild()]) return;
+    [self showPermissionGuide];
+    if (![[defaults stringForKey:openedPermissionBuild] isEqual:currentBuild()]) [self openPermissionSettings:nil];
 }
 
 - (void)watchBundle {
@@ -209,7 +294,8 @@ static NSButton *newLoginCheckbox(void) {
     menu.delegate = self;
     _status = [menu addItemWithTitle:@"ArrowKeys" action:nil keyEquivalent:@""];
     _status.target = self;
-    [menu addItemWithTitle:@"Set Up Cursor Control…" action:@selector(setup:) keyEquivalent:@""].target = self;
+    _setupItem = [menu addItemWithTitle:@"Set Up Cursor Control…" action:@selector(setup:) keyEquivalent:@""];
+    _setupItem.target = self;
     _login = [menu addItemWithTitle:@"Open at Login" action:@selector(toggleLogin:) keyEquivalent:@""];
     _login.target = self;
     [menu addItemWithTitle:@"Quit ArrowKeys" action:@selector(terminate:) keyEquivalent:@"q"].target = NSApp;
@@ -227,8 +313,10 @@ static NSButton *newLoginCheckbox(void) {
     [workspace addObserver:self selector:@selector(resume:) name:NSWorkspaceDidWakeNotification object:nil];
     [self refresh];
     [NSTimer scheduledTimerWithTimeInterval:2 repeats:YES block:^(NSTimer *timer){ [self refresh]; }];
-    if (loginRegistered(SMAppService.mainAppService.status)) [defaults setBool:YES forKey:loginChoiceRecorded];
-    if (![defaults boolForKey:@"CompletedSetup"] || ![defaults boolForKey:loginChoiceRecorded]) [self setup:nil];
+    SMAppServiceStatus loginStatus = SMAppService.mainAppService.status;
+    NSLog(@"Open at Login status=%ld", (long)loginStatus);
+    if (loginRegistered(loginStatus)) [defaults setBool:YES forKey:loginChoiceRecorded];
+    [self resumeSetupIfNeeded];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification {
