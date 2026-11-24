@@ -16,6 +16,8 @@ pkgutil --expand "$1" "$stage/expanded"
 welcome=$(find "$stage/expanded/Resources" -name 'welcome.rtf' -print -quit)
 grep -Fq 'HYPERLINK "https://github.com/nauroman/arrowkeys"' "$welcome"
 grep -Fq 'HYPERLINK "https://github.com/nauroman/arrowkeys/releases/latest"' "$welcome"
+# A relocatable bundle would update another ArrowKeys copy instead of /Applications.
+test "$(xmllint --xpath 'count(//relocate/bundle)' "$stage/expanded/ArrowKeysApp.pkg/PackageInfo")" = 0
 test ! -e "$app"
 for cycle in 1 2; do
   sudo installer -pkg "$1" -target /
