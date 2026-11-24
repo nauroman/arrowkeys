@@ -8,7 +8,12 @@ ArrowKeys runs as a native menu bar app on Mac and uses [AutoHotkey v2](https://
 
 ## Install
 
-Windows users can get **Arrow Keys** from the [Microsoft Store](https://apps.microsoft.com/detail/9NTNKTVCJ1J1). Open it once to enable navigation and startup at sign-in.
+| Platform | Store download | First launch |
+| --- | --- | --- |
+| Windows | [Arrow Keys on the Microsoft Store](https://apps.microsoft.com/detail/9NTNKTVCJ1J1) | Open Arrow Keys once to enable navigation and startup at sign-in. |
+| macOS 15.2 or newer | [ArrowKeys on the Mac App Store](https://apps.apple.com/app/id6838540656) | Open ArrowKeys, choose **Enable Navigation**, and allow cursor control in **System Settings**. |
+
+### Direct downloads from GitHub
 
 | Platform | Download | What to do |
 | --- | --- | --- |
@@ -41,11 +46,11 @@ To uninstall, move **ArrowKeys.app** from Applications to Trash. If Finder asks 
 
 If you manually assigned Caps Lock to Option for an older version, choose **Caps Lock** for that key in **System Settings → Keyboard → Keyboard Shortcuts… → Modifier Keys**.
 
-### Mac App Store candidate
+### Mac App Store edition
 
-The separate **ArrowKeys Store.app** build targets macOS 15.2 and later. It registers the eight shortcuts with macOS. Quit the GitHub edition before opening the candidate. **Open at Login** is checked at first launch and can be changed in the menu. Choose **Enable Navigation**. If permission is needed, ArrowKeys opens **System Settings** and shows which app to allow. Turn on **ArrowKeys Store** and return to your editor. ArrowKeys reopens if needed. Its four-arrow menu shows **Navigation active** when the shortcuts are ready.
+The Mac App Store edition registers the eight shortcuts with macOS. If you already run the GitHub edition, quit it before opening the Store edition. **Open at Login** is checked at first launch and can be changed in the menu. Choose **Enable Navigation**. If permission is needed, ArrowKeys opens **System Settings** and shows which app to allow. Turn on **ArrowKeys Store** and return to your editor. ArrowKeys reopens if needed. Its four-arrow menu shows **Navigation active** when the shortcuts are ready.
 
-For repeated installs on the same Mac, use an Apple-signed development build. The ZIP from GitHub Actions has a build-specific signature, so updating it may require granting cursor control again. The MacBook check compares physical Caps Lock chords with ordinary arrows in TextEdit, Safari and a code editor, then checks uppercase typing after removal. [Build and test the candidate](packaging/mac-app-store/README.md)
+For repeated development installs on the same Mac, use an Apple-signed build. The ZIP from GitHub Actions has a build-specific signature, so updating it may require granting cursor control again. The MacBook check compares physical Caps Lock chords with ordinary arrows in TextEdit, Safari and a code editor, then checks uppercase typing after removal. [Build and test the Mac App Store edition](packaging/mac-app-store/README.md)
 
 ### Verify a download
 
