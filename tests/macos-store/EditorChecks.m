@@ -36,7 +36,7 @@ static void press(NSString *app, CGKeyCode code, CGEventFlags flags) {
 
 static NSString *copyFixture(NSString *app) {
     NSPasteboard *pasteboard = NSPasteboard.generalPasteboard;
-    NSInteger initial = pasteboard.changeCount;
+    NSInteger initial = [pasteboard clearContents];
     press(app, kVK_ANSI_A, kCGEventFlagMaskCommand);
     press(app, kVK_ANSI_C, kCGEventFlagMaskCommand);
     NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:3];
@@ -63,9 +63,16 @@ int main(int argc, const char **argv) {
         NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:20];
         while (![NSWorkspace.sharedWorkspace.frontmostApplication.bundleIdentifier isEqual:app] &&
                deadline.timeIntervalSinceNow > 0) pump(0.1);
-        pump(1);
-        NSString *original = copyFixture(app);
-        BOOL omitsFinalNewline = original && [[original stringByAppendingString:@"\n"] isEqual:fixture];
+        NSString *original = nil;
+        BOOL omitsFinalNewline = NO;
+        // Launch Services may activate an app before its new document has keyboard focus.
+        deadline = [NSDate dateWithTimeIntervalSinceNow:15];
+        do {
+            pump(0.5);
+            original = copyFixture(app);
+            omitsFinalNewline = original && [[original stringByAppendingString:@"\n"] isEqual:fixture];
+            if ([original isEqual:fixture] || omitsFinalNewline) break;
+        } while (deadline.timeIntervalSinceNow > 0);
         if (!fixture || (![original isEqual:fixture] && !omitsFinalNewline)) {
             fprintf(stderr, "%s: the focused field did not contain the pristine fixture (%lu of %lu characters).\n",
                     app.UTF8String, (unsigned long)original.length, (unsigned long)fixture.length);

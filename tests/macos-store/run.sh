@@ -126,6 +126,7 @@ for target in com.apple.TextEdit com.apple.Safari com.apple.ScriptEditor2; do
             cp "$editor_fixture" "$doc"
         fi
         open -b "$target" "$doc"
+        echo "Checking $target ($mode)"
         "$stage/EditorChecks" "$target" "$mode" "$editor_fixture" "$stage/$target-$mode.result"
     done
     echo "Measured cursor positions in $target with registered Option shortcuts"
