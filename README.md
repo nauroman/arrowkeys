@@ -8,6 +8,8 @@ ArrowKeys runs as a native menu bar app on Mac and uses [AutoHotkey v2](https://
 
 ## Install
 
+Windows users can get **Arrow Keys** from the [Microsoft Store](https://apps.microsoft.com/detail/9NTNKTVCJ1J1). Open it once to enable navigation and startup at sign-in.
+
 | Platform | Download | What to do |
 | --- | --- | --- |
 | Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/download/windows-v1.1.1/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey, starts ArrowKeys for your account and creates a sign-in shortcut by default. |

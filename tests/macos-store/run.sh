@@ -15,6 +15,8 @@ codesign -d --entitlements - --xml "$app" > "$stage/signed.plist"
 test "$(/usr/libexec/PlistBuddy -c 'Print :com.apple.security.app-sandbox' "$stage/signed.plist")" = true
 cmp "$app/Contents/Resources/ArrowKeys.icns" "$repo/assets/ArrowKeys.icns"
 cmp "$app/Contents/Resources/ArrowKeysMenuTemplate.svg" "$repo/assets/ArrowKeysMenuTemplate.svg"
+cmp "$app/Contents/Resources/PrivacyInfo.xcprivacy" "$repo/packaging/mac-app-store/PrivacyInfo.xcprivacy"
+plutil -lint "$app/Contents/Resources/PrivacyInfo.xcprivacy"
 if nm -um "$app/Contents/MacOS/ArrowKeys" | grep -E '_CGEventTapCreate|_AXIsProcessTrusted|_IOHIDManagerRegisterInput'; then
     echo 'Unexpected keyboard-monitoring API in the Store edition.' >&2; exit 1
 fi

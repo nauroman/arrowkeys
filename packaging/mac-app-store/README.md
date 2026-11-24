@@ -23,7 +23,16 @@ Follow the prompts to move the test copy to Trash and toggle Caps Lock twice in 
 
 ## Create the upload package
 
-Set `MAC_APP_SIGN_IDENTITY`, `MAC_INSTALLER_SIGN_IDENTITY` and `MAC_APP_STORE_PROFILE` to the Apple Distribution identity, Mac Installer Distribution identity and matching provisioning profile. Set `MAC_STORE_BUILD_NUMBER` to the build number for App Store Connect. Run the build on a Mac with those certificates and their private keys available for signing.
+Sign in to your developer team in **Xcode → Settings → Apple Accounts** and choose the full Xcode toolchain. Set `MAC_STORE_BUILD_NUMBER` to a new build number. Build the archive in a fresh output directory and open it in Xcode Organizer.
+
+```sh
+bash packaging/build-mac-store.sh dist/mac-app-store/upload --archive
+open dist/mac-app-store/upload/ArrowKeys.xcarchive
+```
+
+In Organizer, choose **Distribute App → App Store Connect** and select your team. The archive contains the sandboxed universal app and its privacy manifest. The product page screenshot is [included here](ArrowKeys-Mac-App-Store.png).
+
+For a manually signed package, set `MAC_APP_SIGN_IDENTITY`, `MAC_INSTALLER_SIGN_IDENTITY` and `MAC_APP_STORE_PROFILE` to the distribution identities and matching Mac App Store provisioning profile.
 
 ```sh
 bash packaging/build-mac-store.sh dist/mac-app-store --distribution

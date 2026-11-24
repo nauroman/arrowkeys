@@ -2,11 +2,13 @@
 
 ## macOS
 
-The native menu bar app uses Accessibility permission to recognize the navigation shortcuts. It processes key events locally and keeps each keyboard’s previous Caps Lock assignment in memory so it can restore that assignment when it quits. ArrowKeys does not record typed text or send keyboard events to a server.
+ArrowKeys works offline. It does not record what you type, collect personal data, send analytics or use tracking services.
 
-The app stores a local preference after setting up Open at Login. This lets you turn automatic startup off without ArrowKeys enabling it again on the next launch.
+The Mac App Store edition registers eight shortcuts with macOS. When you allow cursor control, the app sends the corresponding navigation keys to the foreground app. It keeps each keyboard’s previous modifier assignments in the app’s local preferences until it restores them. This lets it recover an assignment the next time it starts after an interrupted session.
 
-The Mac App Store candidate registers eight shortcuts with macOS. With your consent, it sends the corresponding arrows to the foreground app. It stores the previous modifier assignments in its own local preferences until it restores them. This allows the app to recover them when reopened after an interrupted session. The candidate works offline.
+The edition distributed directly on GitHub uses Accessibility permission to recognize the shortcuts locally. It keeps the previous Caps Lock assignment in memory until it restores it.
+
+Both editions save setup and login preferences on your Mac so they remember your choices.
 
 ## Windows
 

@@ -151,6 +151,11 @@ static NSButton *newLoginCheckbox(void) {
     [NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:@[NSBundle.mainBundle.bundleURL]];
 }
 
+- (void)showPrivacyPolicy:(id)sender {
+    NSURL *policy = [NSURL URLWithString:@"https://github.com/nauroman/arrowkeys/blob/main/PRIVACY.md"];
+    [NSWorkspace.sharedWorkspace openURL:policy];
+}
+
 - (void)dismissSetup:(id)sender {
     if (sender && _loginChoice && [NSUserDefaults.standardUserDefaults boolForKey:@"CompletedSetup"])
         [NSUserDefaults.standardUserDefaults setBool:YES forKey:loginChoiceRecorded];
@@ -305,6 +310,7 @@ static NSButton *newLoginCheckbox(void) {
     _setupItem.target = self;
     _login = [menu addItemWithTitle:@"Open at Login" action:@selector(toggleLogin:) keyEquivalent:@""];
     _login.target = self;
+    [menu addItemWithTitle:@"Privacy Policy…" action:@selector(showPrivacyPolicy:) keyEquivalent:@""].target = self;
     [menu addItemWithTitle:@"Quit ArrowKeys" action:@selector(terminate:) keyEquivalent:@"q"].target = NSApp;
     _item.menu = menu;
     [self watchBundle];
