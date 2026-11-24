@@ -1,3 +1,4 @@
 *.command text eol=lf
 *.sh text eol=lf
 macos-postinstall text eol=lf
+tests/macos-store/editor-fixture.txt text eol=lf

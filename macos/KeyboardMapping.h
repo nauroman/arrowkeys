@@ -3,10 +3,13 @@
 #import <IOKit/hidsystem/IOHIDEventSystemClient.h>
 #import <IOKit/hidsystem/IOHIDServiceClient.h>
 #import <IOKit/hid/IOHIDUsageTables.h>
+#include <sys/sysctl.h>
 
 @interface KeyboardMapping : NSObject
+- (instancetype)initWithRecoveryDefaults:(NSUserDefaults *)defaults;
+@property(nonatomic, readonly) NSUInteger connectedKeyboards;
 - (BOOL)refresh;
-- (void)restore;
+- (BOOL)restore;
 - (BOOL)updateKeyboard:(id)registryID current:(NSArray *)current restoring:(BOOL)restoring
                  write:(BOOL (^)(NSArray *))write;
 @end
@@ -14,17 +17,47 @@
 @implementation KeyboardMapping {
     IOHIDEventSystemClientRef _client;
     NSMutableDictionary *_snapshots;
+    NSUserDefaults *_defaults;
+    NSString *_bootID;
 }
 static NSString *const sourceKey = @"HIDKeyboardModifierMappingSrc";
 static NSString *const destinationKey = @"HIDKeyboardModifierMappingDst";
 static const uint64_t caps = 0x700000039, option = 0x7000000e2;
 
 - (instancetype)init {
+    return [self initWithRecoveryDefaults:nil];
+}
+- (instancetype)initWithRecoveryDefaults:(NSUserDefaults *)defaults {
     if ((self = [super init])) {
         _client = IOHIDEventSystemClientCreateSimpleClient(NULL);
         _snapshots = [NSMutableDictionary new];
+        if (defaults) {
+            // IORegistry IDs and UserKeyMapping belong to one boot.
+            char uuid[64] = {};
+            size_t length = sizeof(uuid);
+            if (sysctlbyname("kern.bootsessionuuid", uuid, &length, NULL, 0) == 0) {
+                _bootID = [NSString stringWithUTF8String:uuid];
+                _defaults = defaults;
+                NSDictionary *journal = [defaults dictionaryForKey:@"OwnedCapsLockMappings"];
+                if ([_bootID isEqual:journal[@"boot"]])
+                    [journal[@"devices"] enumerateKeysAndObjectsUsingBlock:^(NSString *key, id entry, BOOL *stop) {
+                        self->_snapshots[@(key.longLongValue)] = entry;
+                    }];
+            }
+        }
     }
     return self;
+}
+- (void)saveSnapshots {
+    if (!_defaults) return;
+    NSMutableDictionary *devices = [NSMutableDictionary new];
+    for (NSNumber *key in _snapshots)
+        if (_snapshots[key] != NSNull.null) devices[key.stringValue] = _snapshots[key];
+    if (devices.count)
+        [_defaults setObject:@{@"boot":_bootID, @"devices":devices} forKey:@"OwnedCapsLockMappings"];
+    else
+        [_defaults removeObjectForKey:@"OwnedCapsLockMappings"];
+    [_defaults synchronize];
 }
 - (BOOL)updateKeyboard:(id)registryID current:(NSArray *)current restoring:(BOOL)restoring
                  write:(BOOL (^)(NSArray *))write {
@@ -52,13 +85,14 @@ static const uint64_t caps = 0x700000039, option = 0x7000000e2;
             if (!write(restored)) return NO;
         }
         [_snapshots removeObjectForKey:registryID];
+        [self saveSnapshots];
         return YES;
     }
     if (configured) { _snapshots[registryID] = NSNull.null; return YES; }
     [others addObject:desired];
-    if (!write(others)) return NO;
     _snapshots[registryID] = @{@"before":[current copy], @"applied":[others copy], @"caps":capsEntries};
-    return YES;
+    [self saveSnapshots];
+    return write(others);
 }
 - (BOOL)update:(BOOL)restoring {
     if (!_client) return NO;
@@ -74,14 +108,23 @@ static const uint64_t caps = 0x700000039, option = 0x7000000e2;
         [connected addObject:registryID];
         NSArray *current = CFBridgingRelease(IOHIDServiceClientCopyProperty(service, CFSTR("UserKeyMapping")));
         BOOL updated = [self updateKeyboard:registryID current:current restoring:restoring write:^BOOL(NSArray *mapping) {
-            return IOHIDServiceClientSetProperty(service, CFSTR("UserKeyMapping"), (__bridge CFArrayRef)mapping);
+            if (!IOHIDServiceClientSetProperty(service, CFSTR("UserKeyMapping"), (__bridge CFArrayRef)mapping))
+                return NO;
+            NSArray *actual = CFBridgingRelease(IOHIDServiceClientCopyProperty(service, CFSTR("UserKeyMapping")));
+            return [(actual ?: @[]) isEqual:mapping];
         }];
         if (!updated) success = NO;
     }
-    for (id key in _snapshots.allKeys) if (![connected containsObject:key]) [_snapshots removeObjectForKey:key];
-    return success;
+    _connectedKeyboards = connected.count;
+    // A disconnected device loses its temporary mapping. Its new service has a new ID.
+    // Keep the recovery record if the service list is temporarily empty.
+    for (id key in _snapshots.allKeys) if (connected.count && ![connected containsObject:key]) {
+        [_snapshots removeObjectForKey:key];
+        [self saveSnapshots];
+    }
+    return success && (restoring || connected.count != 0);
 }
 - (BOOL)refresh { return [self update:NO]; }
-- (void)restore { if (_snapshots.count) [self update:YES]; }
+- (BOOL)restore { return !_snapshots.count || [self update:YES]; }
 - (void)dealloc { if (_client) CFRelease(_client); }
 @end
