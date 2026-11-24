@@ -107,7 +107,12 @@ check_delivery com.apple.Safari "$src/browser.html"
 check_delivery com.apple.dt.Xcode "$stage/Xcode.txt"
 xcrun clang -fobjc-arc -framework Cocoa -framework Carbon -framework ApplicationServices \
     "$src/EditorChecks.m" -o "$stage/EditorChecks"
-for target in com.apple.TextEdit com.apple.Safari com.apple.dt.Xcode; do
+for target in com.apple.TextEdit com.apple.Safari com.apple.ScriptEditor2; do
+    editor_fixture="$src_fixture"
+    if [[ "$target" == com.apple.ScriptEditor2 ]]; then
+        editor_fixture="$stage/Script Editor fixture.applescript"
+        sed 's/^alpha/-- ha/' "$src_fixture" > "$editor_fixture"
+    fi
     for mode in reference shortcuts; do
         doc="$stage/$target-$mode.txt"
         if [[ "$target" == com.apple.Safari ]]; then
@@ -117,13 +122,14 @@ for target in com.apple.TextEdit com.apple.Safari com.apple.dt.Xcode; do
               printf '%s' '</textarea><script>onload=()=>document.querySelector("textarea").focus()</script>'
             } > "$doc"
         else
-            cp "$src_fixture" "$doc"
+            if [[ "$target" == com.apple.ScriptEditor2 ]]; then doc="$stage/$target-$mode.applescript"; fi
+            cp "$editor_fixture" "$doc"
         fi
         open -b "$target" "$doc"
-        "$stage/EditorChecks" "$target" "$mode" "$src_fixture" "$stage/$target-$mode.result"
+        "$stage/EditorChecks" "$target" "$mode" "$editor_fixture" "$stage/$target-$mode.result"
     done
     echo "Measured cursor positions in $target with registered Option shortcuts"
-    "$kit/StoreChecks" --compare-editors "$stage/$target-reference.result" "$stage/$target-shortcuts.result" "$src_fixture"
+    "$kit/StoreChecks" --compare-editors "$stage/$target-reference.result" "$stage/$target-shortcuts.result" "$editor_fixture"
 done
 log="$stage/live-removal.log"
 # The observer reads the system's actual per-device values from outside the test bundle.

@@ -43,7 +43,7 @@ If you manually assigned Caps Lock to Option for an older version, choose **Caps
 
 The separate **ArrowKeys Store.app** build targets macOS 15.2 and later. It registers the eight shortcuts with macOS. Quit the GitHub edition before opening the candidate. **Open at Login** is checked at first launch and can be changed in the menu. Choose **Enable Navigation**. If permission is needed, ArrowKeys opens **System Settings** and shows which app to allow. Turn on **ArrowKeys Store** and return to your editor. ArrowKeys reopens if needed. Its four-arrow menu shows **Navigation active** when the shortcuts are ready.
 
-The candidate is available as a development build. The MacBook check compares physical Caps Lock chords with ordinary arrows in TextEdit, Safari and a code editor. It also checks uppercase typing after moving the test copy to Trash. [Build and test the candidate](packaging/mac-app-store/README.md)
+For repeated installs on the same Mac, use an Apple-signed development build. The ZIP from GitHub Actions has a build-specific signature, so updating it may require granting cursor control again. The MacBook check compares physical Caps Lock chords with ordinary arrows in TextEdit, Safari and a code editor, then checks uppercase typing after removal. [Build and test the candidate](packaging/mac-app-store/README.md)
 
 ### Verify a download
 

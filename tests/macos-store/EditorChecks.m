@@ -54,7 +54,7 @@ int main(int argc, const char **argv) {
             ![env[@"RUNNER_ENVIRONMENT"] isEqual:@"github-hosted"] || !CGPreflightPostEventAccess()) return 77;
         NSString *app = @(argv[1]), *mode = @(argv[2]);
         BOOL shortcuts = [mode isEqual:@"shortcuts"];
-        if (![@[@"com.apple.TextEdit", @"com.apple.Safari", @"com.apple.dt.Xcode"] containsObject:app] ||
+        if (![@[@"com.apple.TextEdit", @"com.apple.Safari", @"com.apple.ScriptEditor2"] containsObject:app] ||
             (!shortcuts && ![mode isEqual:@"reference"])) return 2;
         NSString *fixture = [NSString stringWithContentsOfFile:@(argv[3]) encoding:NSUTF8StringEncoding error:NULL];
         [NSApplication sharedApplication];
@@ -65,8 +65,10 @@ int main(int argc, const char **argv) {
                deadline.timeIntervalSinceNow > 0) pump(0.1);
         pump(1);
         NSString *original = copyFixture(app);
-        if (!fixture || ![original isEqual:fixture]) {
-            fprintf(stderr, "%s: the focused field did not contain the pristine fixture.\n", app.UTF8String);
+        BOOL omitsFinalNewline = original && [[original stringByAppendingString:@"\n"] isEqual:fixture];
+        if (!fixture || (![original isEqual:fixture] && !omitsFinalNewline)) {
+            fprintf(stderr, "%s: the focused field did not contain the pristine fixture (%lu of %lu characters).\n",
+                    app.UTF8String, (unsigned long)original.length, (unsigned long)fixture.length);
             return 2;
         }
         StoreHotKeys *navigation = [StoreHotKeys new];
@@ -75,15 +77,22 @@ int main(int argc, const char **argv) {
         press(app, kVK_DownArrow, 0);
         for (int i = 0; i < 3; ++i) press(app, kVK_RightArrow, 0);
         press(app, kVK_ANSI_0, 0);
-        const CGKeyCode markers[] = {kVK_ANSI_1, kVK_ANSI_2, kVK_ANSI_3, kVK_ANSI_4,
-                                     kVK_ANSI_5, kVK_ANSI_6, kVK_ANSI_7, kVK_ANSI_8};
-        for (NSUInteger i = 0; i < bindingCount; ++i) {
-            press(app, shortcuts ? bindings[i].input : bindings[i].arrow,
-                  shortcuts ? kCGEventFlagMaskAlternate : bindings[i].modifier);
-            press(app, markers[i], 0);
+        const struct { CGKeyCode input, arrow, marker; CGEventFlags flags; } cases[] = {
+            {kVK_ANSI_J, kVK_LeftArrow, kVK_ANSI_1, 0}, {kVK_ANSI_K, kVK_DownArrow, kVK_ANSI_2, 0},
+            {kVK_ANSI_L, kVK_RightArrow, kVK_ANSI_3, 0}, {kVK_ANSI_I, kVK_UpArrow, kVK_ANSI_4, 0},
+            {kVK_ANSI_U, kVK_LeftArrow, kVK_ANSI_5, kCGEventFlagMaskCommand},
+            {kVK_ANSI_O, kVK_RightArrow, kVK_ANSI_6, kCGEventFlagMaskCommand},
+            {kVK_ANSI_H, kVK_LeftArrow, kVK_ANSI_7, kCGEventFlagMaskAlternate},
+            {kVK_ANSI_Semicolon, kVK_RightArrow, kVK_ANSI_8, kCGEventFlagMaskAlternate}
+        };
+        for (NSUInteger i = 0; i < sizeof(cases) / sizeof(cases[0]); ++i) {
+            press(app, shortcuts ? cases[i].input : cases[i].arrow,
+                  shortcuts ? kCGEventFlagMaskAlternate : cases[i].flags);
+            press(app, cases[i].marker, 0);
         }
         [navigation unregisterShortcuts];
         NSString *result = copyFixture(app);
+        if (omitsFinalNewline) result = [result stringByAppendingString:@"\n"];
         return [result writeToFile:@(argv[4]) atomically:YES encoding:NSUTF8StringEncoding error:NULL] ? 0 : 1;
     }
 }
