@@ -113,7 +113,8 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         NSAlert *help = [NSAlert new];
         help.icon = NSApp.applicationIconImage;
         help.messageText = @"Allow ArrowKeys to move the cursor";
-        help.informativeText = @"In Accessibility Settings, turn on ArrowKeys. If it is missing, click + and choose ArrowKeys from Applications.\n\n"
+        help.informativeText = @"In Accessibility Settings, turn on ArrowKeys. If it is missing, click + and choose ArrowKeys from Applications. "
+                               @"This window closes by itself as soon as ArrowKeys has access.\n\n"
                                @"Already on after an update? Select ArrowKeys and click −. Then click +, add ArrowKeys from Applications again and turn it on. If macOS asks, choose Quit & Reopen.";
         NSButton *open = [help addButtonWithTitle:@"Open Accessibility Settings"];
         open.target = self;
@@ -121,7 +122,10 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
         NSButton *later = [help addButtonWithTitle:@"Later"];
         later.target = self;
         later.action = @selector(dismissAccessibilitySetup:);
+        later.keyEquivalent = @"\e";
         [help layout];
+        // Wait behind System Settings instead of hiding, so the steps are still there if access fails.
+        help.window.hidesOnDeactivate = NO;
         [help.window center];
         self.accessibilityHelp = help;
     }
@@ -129,12 +133,14 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     [self.accessibilityHelp.window makeKeyAndOrderFront:nil];
 }
 - (void)access:(id)sender {
-    [self dismissAccessibilitySetup:nil];
-    if (!AXIsProcessTrusted()) {
-        NSDictionary *options = @{(__bridge NSString *)kAXTrustedCheckOptionPrompt: @YES};
-        AXIsProcessTrustedWithOptions((__bridge CFDictionaryRef)options);
-    }
+    // Never pass kAXTrustedCheckOptionPrompt. Its system alert stays on screen after access is
+    // granted. AXIsProcessTrusted already lists ArrowKeys in Settings, and the guide closes itself.
     [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
+}
+- (void)accessMayHaveChanged:(NSNotification *)notification {
+    // macOS updates the trust check just after it announces a change, so check again shortly.
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(connect) object:nil];
+    [self performSelector:@selector(connect) withObject:nil afterDelay:0.25];
 }
 - (void)toggleLogin:(id)sender {
     SMAppService *service = SMAppService.mainAppService;
@@ -198,6 +204,13 @@ static CGEventRef translate(CGEventTapProxy proxy, CGEventType type, CGEventRef 
     }
     [self connect];
     [NSTimer scheduledTimerWithTimeInterval:2 repeats:YES block:^(NSTimer *timer){ [self connect]; }];
+    // Connect and close the guide as soon as access changes, the user returns, or leaves Settings.
+    [NSDistributedNotificationCenter.defaultCenter addObserver:self selector:@selector(accessMayHaveChanged:)
+        name:@"com.apple.accessibility.api" object:nil suspensionBehavior:NSNotificationSuspensionBehaviorDeliverImmediately];
+    [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(accessMayHaveChanged:)
+        name:NSApplicationDidBecomeActiveNotification object:nil];
+    [NSWorkspace.sharedWorkspace.notificationCenter addObserver:self selector:@selector(accessMayHaveChanged:)
+        name:NSWorkspaceDidActivateApplicationNotification object:nil];
     NSString *build = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
     if (offerAccessibilitySetup(NSUserDefaults.standardUserDefaults, build, AXIsProcessTrusted()))
         [self showAccessibilitySetup:nil];

@@ -20,6 +20,9 @@ test ! -e "$app"
 for cycle in 1 2; do
   sudo installer -pkg "$1" -target /
   codesign --verify --strict "$app"
+  # The system Accessibility alert stays open after access is granted, so only the app's guide may ask.
+  prompt_refs=$(nm -u "$app/Contents/MacOS/ArrowKeys" | grep -F kAXTrustedCheckOptionPrompt || true)
+  [[ -z "$prompt_refs" ]]
   lipo "$app/Contents/MacOS/ArrowKeys" -verify_arch arm64 x86_64
   pkgutil --pkg-info com.nauroman.arrowkeys.native
   cmp "$repo/assets/ArrowKeys.icns" "$app/Contents/Resources/ArrowKeys.icns"
