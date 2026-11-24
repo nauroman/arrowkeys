@@ -1,131 +1,134 @@
 # <img src="assets/ArrowKeys.png" width="48" alt=""> ArrowKeys
 
-**Move through text without reaching for the arrow keys.** Hold **Caps Lock** and use **J K L I** to move left, down, right and up. Jump by word or go to the start and end of a line with the nearby keys.
+**Move the text cursor without taking your hands off the letters.** Hold **Caps Lock** and press **J K L I** to move left, down, right and up. ArrowKeys is free, works offline, and runs on Mac and Windows.
 
-ArrowKeys runs as a native menu bar app on Mac and uses [AutoHotkey v2](https://www.autohotkey.com/) on Windows. Both editions work offline.
+<img src="docs/images/demo.gif" width="720" alt="Animation: holding Caps Lock and pressing I, H, J, L, U, semicolon, O and K moves the cursor through two lines of text">
 
 [![Installer builds, tests and ClamAV scan](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml)
 
-## Install
+## Why use it
 
-Windows users can get **Arrow Keys** from the [Microsoft Store](https://apps.microsoft.com/detail/9NTNKTVCJ1J1). Open it once to enable navigation and startup at sign-in.
+When you type, your fingers rest on the middle row of letters. The arrow keys sit in the far corner of the keyboard, and many laptop and compact keyboards make them tiny. Every time you fix a typo or move to another word, you reach over, look down, and find your place again.
 
-| Platform | Download | What to do |
+ArrowKeys puts the arrows under your right hand instead. **Caps Lock** is right next to your left little finger and most people rarely use it. ArrowKeys turns it into a navigation key, much as **Shift** turns letters into capitals:
+
+1. Hold **Caps Lock** with your left little finger.
+2. Press **J**, **K**, **L** or **I** with your right hand. The cursor moves as if you had pressed an arrow key.
+3. Let go of Caps Lock and keep typing.
+
+This helps anyone who writes a lot: emails, documents, chats or code. People who know touch typing get the most out of it.
+
+## Shortcuts
+
+Hold **Caps Lock** and press:
+
+| Key | Moves the cursor | Like pressing |
 | --- | --- | --- |
-| Windows | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/download/windows-v1.1.1/ArrowKeys-Windows-Setup.exe) | Run the installer. It includes AutoHotkey, starts ArrowKeys for your account and creates a sign-in shortcut by default. |
-| macOS 13 or newer | [ArrowKeys-macOS.pkg](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg) | Double-click the package and choose **Continue → Install**. ArrowKeys starts in the menu bar. Allow **Accessibility** when prompted. |
+| **J** | One letter left | ← |
+| **L** | One letter right | → |
+| **I** | One line up | ↑ |
+| **K** | One line down | ↓ |
+| **H** | Back one word | Option + ← on Mac, Ctrl + ← on Windows |
+| **;** | Forward one word | Option + → on Mac, Ctrl + → on Windows |
+| **U** | To the start of the line | Command + ← on Mac, Home on Windows |
+| **O** | To the end of the line | Command + → on Mac, End on Windows |
 
-Find the scan log and SHA-256 checksums on the [release page for your platform](https://github.com/nauroman/arrowkeys/releases). You can also [verify the build provenance](#verify-a-download).
+Holding a key repeats it, just like a real arrow key. The highlighted keys show where they are:
 
-Open a text editor and hold **Caps Lock**. **J/K/L/I** move left/down/right/up, **U/O** go to the beginning/end of a line, and **H/;** move by word. Release Caps Lock to resume typing.
+![Keyboard with Caps Lock and the J, K, L, I keys highlighted](keyboard.png)
 
-![Keyboard layout highlighting Caps Lock and the J, K, L, I navigation keys](keyboard.png)
+**What happens to Caps Lock?** While ArrowKeys is running, Caps Lock no longer switches to capital letters. Use **Shift** for capitals as usual. Quit ArrowKeys and Caps Lock works as before.
 
-### On a Mac
+## Install on a Mac
 
-The native installer is about **1.1 MB** and supports Apple silicon and Intel. The older **43.4 MB** package from v1.0.1 bundled Karabiner-Elements.
+ArrowKeys needs macOS 13 or newer and works on Apple silicon and Intel Macs. The download is about 1 MB.
 
-The package is signed with Developer ID and notarized by Apple, so it opens in Installer without extra steps. [Verify your download](#verify-a-download)
+**1. Download and open the installer.** Download [**ArrowKeys-macOS.pkg**](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg) and double-click it. Choose **Continue**, then **Install**, and enter your Mac password when asked. The package is signed by the developer and checked by Apple, so it opens without warnings.
 
-The installer opens ArrowKeys for the signed-in user. If the installed version needs permission, it shows a setup guide. Choose **Open Accessibility Settings** and turn on **ArrowKeys** to let it move the cursor in other apps. The guide closes by itself once access is on. You can reopen the guide from **Set Up Accessibility…** in the four-arrow menu while access is missing. Once the menu shows **Navigation active**, try **Caps Lock + J** in TextEdit to move the cursor one character left. ArrowKeys configures Caps Lock on each keyboard, including keyboards connected later. If nobody was signed in during installation, open **Applications → ArrowKeys** after signing in.
+<img src="docs/images/mac-installer.png" width="560" alt="The ArrowKeys installer welcome screen">
 
-Updates keep Accessibility access. Coming from version 1.1.4 or earlier, which were not signed, ArrowKeys asks once more. It removes the old switch first, so you only need to turn ArrowKeys on again. If the switch still looks on while the menu asks for access, remove the ArrowKeys entry with **−** in **System Settings → Privacy & Security → Accessibility**, then use **+** to add the installed **Applications → ArrowKeys** and turn it on. If the menu says **Keyboard connection unavailable — retrying**, macOS has granted Accessibility and ArrowKeys is retrying the keyboard connection automatically.
+**2. Allow ArrowKeys to move the cursor.** ArrowKeys starts by itself after installation. For it to move the cursor in other apps, macOS needs your permission in **Accessibility** settings. ArrowKeys shows this window:
 
-**Open at Login** is on by default. ArrowKeys registers itself on first launch and starts automatically at subsequent sign-ins. To turn it off, uncheck **Open at Login** in the four-arrow menu. If the menu shows **Approval Required**, select that item to open the macOS Login Items settings.
+<img src="docs/images/mac-access-guide.png" width="300" alt="ArrowKeys window: Allow ArrowKeys to move the cursor, with Open Accessibility Settings and Later buttons">
 
-Caps Lock acts as **Option**, and either physical Option key also activates the shortcuts. **U/O** send **Command + Left/Right** and **H/;** send **Option + Left/Right**. The rule uses physical key positions, including the U.S. semicolon position immediately to the right of L. Holding a third modifier such as Shift leaves that chord to the app. A mapped Option chord takes precedence over typing its usual special character.
+Choose **Open Accessibility Settings** and turn on the switch next to **ArrowKeys**. The ArrowKeys window closes by itself as soon as access is on.
 
-ArrowKeys processes eight physical key positions through a macOS event tap. Input-source shortcuts such as an existing Option + Shift binding pass through. Switching from the Karabiner edition? Remove its ArrowKeys rule in **Complex Modifications** to avoid two handlers processing the same shortcut. You can keep Karabiner for other rules.
+**3. Check the menu bar.** ArrowKeys lives in the menu bar at the top of the screen. It has no window or Dock icon. Click its four-arrow icon to see its menu:
 
-To uninstall, move **ArrowKeys.app** from Applications to Trash. If Finder asks you to close the app first, select **Quit ArrowKeys** in its menu and try again. Both quitting and moving the running app to Trash restore the previous Caps Lock assignment on each keyboard it changed. With the default Mac settings, Caps Lock toggles uppercase again.
+<img src="docs/images/mac-menu.png" width="300" alt="ArrowKeys menu: Navigation active, Accessibility Settings…, Open at Login (checked), Quit ArrowKeys">
 
-If you manually assigned Caps Lock to Option for an older version, choose **Caps Lock** for that key in **System Settings → Keyboard → Keyboard Shortcuts… → Modifier Keys**.
+**Navigation active** means everything is ready. Open any text, hold **Caps Lock** and press **J**. The cursor moves one letter left.
 
-### Mac App Store candidate
+ArrowKeys starts automatically when you log in. To change that, click **Open at Login** in the menu. It also works on every connected keyboard, including keyboards you plug in or pair later.
 
-The separate **ArrowKeys Store.app** build targets macOS 15.2 and later. It registers the eight shortcuts with macOS. Quit the GitHub edition before opening the candidate. **Open at Login** is checked at first launch and can be changed in the menu. Choose **Enable Navigation**. If permission is needed, ArrowKeys opens **System Settings** and shows which app to allow. Turn on **ArrowKeys Store** and return to your editor. ArrowKeys reopens if needed. Its four-arrow menu shows **Navigation active** when the shortcuts are ready.
+### Update or remove it on a Mac
 
-For repeated installs on the same Mac, use an Apple-signed development build. The ZIP from GitHub Actions has a build-specific signature, so updating it may require granting cursor control again. The MacBook check compares physical Caps Lock chords with ordinary arrows in TextEdit, Safari and a code editor, then checks uppercase typing after removal. [Build and test the candidate](packaging/mac-app-store/README.md)
+- **Update:** download the new package and install it over the old one. Updates keep the Accessibility permission. Updating from version 1.1.4 or older is the one exception: turn ArrowKeys on in Accessibility settings once more.
+- **Remove:** choose **Quit ArrowKeys** in its menu, then move **ArrowKeys** from the **Applications** folder to the Trash. Caps Lock goes back to how it was.
+
+## Install on Windows
+
+The easiest way is **[Arrow Keys in the Microsoft Store](https://apps.microsoft.com/detail/9NTNKTVCJ1J1)**. Install it and open it once. It starts automatically when you sign in.
+
+You can also download [**ArrowKeys-Windows-Setup.exe**](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe) and run it. This installer has no publisher signature, so Windows may show **Windows protected your PC**. Choose **More info**, then **Run anyway**. Or use the Microsoft Store version, which does not show this warning.
+
+After installation, open any text, hold **Caps Lock** and press **J**. To remove ArrowKeys, uninstall it in **Settings → Apps → Installed apps**.
+
+## Questions
+
+**The cursor doesn't move. What should I check?** On a Mac, click the four-arrow icon in the menu bar. If the menu does not say **Navigation active**, choose the item at the top and follow the steps. Some apps, games and windows running as administrator on Windows may ignore simulated keys.
+
+**The Accessibility switch is on, but ArrowKeys still asks for access.** Choose **Accessibility Settings…** in the ArrowKeys menu to open the list of apps. Select ArrowKeys and click **−**. Then click **+**, add **ArrowKeys** from **Applications**, and turn it on.
+
+**Can I still type capital letters?** Yes, with **Shift**. Only the Caps Lock toggle is turned off while ArrowKeys runs.
+
+**Is it safe to give ArrowKeys Accessibility access?** macOS asks for this permission for any app that presses keys for you. ArrowKeys only reacts to its eight shortcuts. It does not record what you type, collect data or connect to the internet. The [source code](macos/ArrowKeys.m) is public, and every release is built on GitHub from that code and scanned for viruses. See the [privacy policy](PRIVACY.md).
+
+**Does it work with my keyboard layout?** ArrowKeys uses key positions, not letters. On a Mac, the shortcuts stay on the same physical keys even with a Russian or another layout. On Windows, letter keys depend on the layout, so on a Russian layout **;** may be on a different key.
+
+## More details
+
+### Mac
+
+Caps Lock acts as **Option**, so either physical Option key also works with the shortcuts. Holding a third key such as Shift leaves that combination to the app. A shortcut takes priority over the special character Option would normally type. ArrowKeys reads eight physical key positions through a macOS event tap. Other Option shortcuts, such as switching input sources with Option + Shift, pass through.
+
+If the menu says **Keyboard connection unavailable — retrying**, macOS has granted access and ArrowKeys is reconnecting to the keyboard automatically. If the menu shows **Open at Login (Approval Required…)**, select it to open the macOS Login Items settings.
+
+Quitting ArrowKeys, or moving the running app to the Trash, restores the previous Caps Lock assignment on each keyboard it changed. If you set Caps Lock to Option by hand for an older version, choose **Caps Lock** for that key in **System Settings → Keyboard → Keyboard Shortcuts… → Modifier Keys**. Switching from the old Karabiner-Elements edition? Remove its ArrowKeys rule in **Complex Modifications** so the shortcuts are not handled twice.
+
+A separate sandboxed edition for the Mac App Store targets macOS 15.2 and later. [Build and test it](packaging/mac-app-store/README.md)
+
+### Windows
+
+The Windows edition is an [AutoHotkey v2](https://www.autohotkey.com/) script, [`arrowkeys.ahk`](arrowkeys.ahk). The installer includes AutoHotkey.
+
+The script maps Caps Lock to **Alt** (`CapsLock::Alt`), so the physical Alt key also triggers the shortcuts. A single Caps Lock tap sends an Alt press and release, which can open an app's menu. Plain letters type normally when Caps Lock and Alt are released. Adding Ctrl or Shift does not select text.
+
+The Caps Lock toggle is kept off with `SetCapsLockState "AlwaysOff"`. A check every 250 ms also switches it off if another program turns it on. This is a recovery measure, not a guarantee against every input fault. The script was checked with synthetic input across 44 navigation scenarios and three forced-toggle scenarios. These checks do not cover physical hardware faults.
+
+**Run from source:**
+1. Install [AutoHotkey v2](https://www.autohotkey.com/) (v2.0 or a later v2 release; v1 is incompatible).
+2. Choose **Code → Download ZIP** and extract it to a permanent folder.
+3. Double-click `arrowkeys.ahk`. An AutoHotkey icon appears in the system tray.
+4. To start it at sign-in, press **Win + R**, enter `shell:startup`, and put a shortcut to `arrowkeys.ahk` in that folder.
+
+To reload after editing, right-click the tray icon and choose **Reload Script**. Choose **Exit** to stop it and restore Caps Lock.
 
 ### Verify a download
 
-The [release workflow](.github/workflows/build.yml) builds the installers from the tagged source, checks installation on Windows and macOS, and scans the release downloads with ClamAV. Each release links to its scan log and includes **SHA256SUMS.txt**. A clean scan means that the scanner found no known threats in those files at the time of the scan.
+The [release workflow](.github/workflows/build.yml) builds the installers from the tagged source, tests installation on Windows and macOS, and scans the downloads with ClamAV. Each release links to its scan log and includes **SHA256SUMS.txt**. A clean scan means the scanner found no known threats in those files at the time of the scan.
 
-You can verify the exact downloaded bytes against GitHub's signed build record with the [GitHub CLI](https://cli.github.com/). Run the command for your download:
+You can check that a download matches GitHub's signed build record with the [GitHub CLI](https://cli.github.com/):
 
 ```shell
-gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
 gh attestation verify ArrowKeys-macOS.pkg --repo nauroman/arrowkeys
+gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
 ```
-
-The Windows installer has no publisher signature. You can inspect the keyboard handlers and read how each edition processes input. [Windows hotkeys](arrowkeys.ahk) · [macOS handler](macos/ArrowKeys.m) · [Privacy](PRIVACY.md)
-
-### Windows setup from source
-
-1. Install [AutoHotkey v2](https://www.autohotkey.com/).
-2. Choose **Code → Download ZIP** in this repository and extract it to a permanent folder.
-3. Double-click [`arrowkeys.ahk`](arrowkeys.ahk). An AutoHotkey icon appears in the system tray.
-4. Open a text editor, type a line, then hold **Caps Lock** and tap **J** to move left. Release Caps Lock and type normally.
-
-**Requirements:** Windows and **AutoHotkey v2.0 or a later v2 release**, as specified by `#Requires AutoHotkey v2.0`. AutoHotkey v1 is incompatible. The current script was tested with **AutoHotkey v2.0.18**.
-
-## Windows key reference
-
-Hold **Caps Lock** while pressing a key below. Holding a navigation key repeats its action.
-
-| Shortcut | Sends | Use it to… |
-| --- | --- | --- |
-| Caps Lock + **J** | Left arrow | Move one character left |
-| Caps Lock + **K** | Down arrow | Move down |
-| Caps Lock + **L** | Right arrow | Move one character right |
-| Caps Lock + **I** | Up arrow | Move up |
-| Caps Lock + **U** | Home | Go to the start of a line |
-| Caps Lock + **O** | End | Go to the end of a line |
-| Caps Lock + **H** | Ctrl + Left arrow | Jump to the previous word |
-| Caps Lock + **;** | Ctrl + Right arrow | Jump to the next word |
-
-For example, when correcting a sentence, hold Caps Lock and tap **H** to move back a word, release Caps Lock to edit, then use **O** with Caps Lock to return to the end of the line. In code, **U** and **O** help reach the start or end of a line without moving to the navigation cluster. The receiving app determines the exact behavior of Home, End and word movement.
-
-### Caps Lock acts as Alt
-
-The script uses `CapsLock::Alt`: Caps Lock becomes an **Alt modifier**, including for other Alt shortcuts in your app. A single Caps Lock press sends an **Alt press and release**, which can activate an application's menu. It does **not** toggle uppercase typing.
-
-The navigation shortcuts are defined as **Alt + key**, so the physical Alt key also triggers them. Plain J, K, L, I and the other letters continue to work normally when Caps Lock and Alt are released.
-
-Extra Ctrl or Shift modifiers change which hotkey matches; additional selection shortcuts are not defined. Letter and punctuation bindings depend on the keyboard layout. For example, on a Russian layout, `;` may require **Shift + 4**.
-
-## Windows sign-in for a source install
-
-1. Create a shortcut to `arrowkeys.ahk` in its permanent folder.
-2. Press **Win + R**, enter `shell:startup`, and press **Enter**.
-3. Put the **shortcut** in the Startup folder.
-
-Windows will launch it when you sign in. Keep the script in place so the shortcut continues to work; using a shortcut also means you only have one copy to update.
-
-## Reload or stop
-
-For an installer-based Windows setup, uninstall **ArrowKeys** in **Settings → Apps → Installed apps**. When switching from a manual setup, exit your previous script and remove its old Startup shortcut.
-
-- **After editing:** right-click the AutoHotkey tray icon and choose **Reload Script**. Launching the same script again also replaces its earlier instance through `#SingleInstance Force`.
-- **Stop and restore the usual key behavior:** right-click the tray icon and choose **Exit**. Caps Lock can then be used as its normal toggle again.
-- **Stop automatic startup:** remove its shortcut from the Startup folder, then exit the running script.
-
-Use **Exit** when you want the Caps Lock safeguard to stop too; suspending hotkeys alone does not stop the timer.
-
-## Caps Lock safeguard and limits
-
-Since Caps Lock is used as Alt, its uppercase toggle is kept **off** while this script runs. `SetCapsLockState "AlwaysOff"` applies at startup. A small check every **250 ms** also switches it off if another script or a synthetic keyboard event enables it despite that setting. The check only changes the Caps Lock toggle; it does not release held modifiers or change the navigation bindings.
-
-The correction normally runs on the next timer tick. A busy or suspended process can delay it, and other keyboard hooks or remapping tools can still interfere. This is a recovery measure for an unintended toggle, not a guarantee against every possible input fault.
-
-The update was checked with synthetic input across **44 before/after navigation scenarios** and **three forced-toggle scenarios**, including repeat, modifier combinations, release order and focus changes. These checks do not establish the source of every rare fault or test physical hardware failures.
-
-Some apps, games and elevated windows handle simulated input differently. Use the script in your usual apps to check compatibility. It sends ordinary navigation keys and does not change keyboard drivers or registry mappings.
 
 ## Contributing
 
-Suggestions and fixes are welcome. For a keyboard issue, include your AutoHotkey version, keyboard layout, affected app, other remapping tools, and the order in which you press and release the keys. Avoid including private text or clipboard contents.
+Suggestions and fixes are welcome in [Issues](https://github.com/nauroman/arrowkeys/issues). For a keyboard problem, include your system version, keyboard layout, the app where it happens, any other key remapping tools, and the order in which you press and release the keys. Please don't include private text.
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE)
