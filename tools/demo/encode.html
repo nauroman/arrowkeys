@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>WebP encoder</title>
+<script>
+// encode("in/name.png", "name.webp", quality) loads an image from this server, encodes it with the
+// browser's WebP encoder and posts the result back. quality 1 asks for the best quality.
+async function encode(src, name, quality) {
+  const img = new Image();
+  img.src = src + "?t=" + Date.now();
+  await img.decode();
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  canvas.getContext("2d").drawImage(img, 0, 0);
+  const blob = await new Promise(r => canvas.toBlob(r, "image/webp", quality));
+  if (!blob || blob.type !== "image/webp") throw new Error("WebP encoding unavailable: " + (blob && blob.type));
+  const res = await fetch("/save?name=" + encodeURIComponent(name), { method: "POST", body: blob });
+  return await res.text();
+}
+async function encodeAll(list) {
+  const out = [];
+  for (const [src, name, q] of list) out.push(await encode(src, name, q));
+  return out;
+}
+</script>
+<p>Ready.</p>
