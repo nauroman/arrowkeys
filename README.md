@@ -4,7 +4,7 @@
 
 **Website:** [nauroman.github.io/arrowkeys](https://nauroman.github.io/arrowkeys/)
 
-<img src="docs/images/demo.gif" width="720" alt="Animation: holding Caps Lock and pressing I, H, J, L, U, semicolon, O and K moves the cursor through two lines of text">
+<img src="docs/images/demo.gif" width="720" alt="Animation: holding Caps Lock and pressing I, J, L and K moves the cursor up, left, right and down through two lines of text">
 
 [![Installer builds, tests and ClamAV scan](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml)
 

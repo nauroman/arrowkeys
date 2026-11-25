@@ -1,81 +1,91 @@
-// Renders docs/images/demo.gif, a caret moving through two lines of text as ArrowKeys shortcuts are pressed.
+// Renders docs/images/demo.gif, a caret moving through two lines of text while Caps Lock and J, I, K or L are held.
 // Usage: swift docs/images/make-demo.swift docs/images/demo.gif
 import AppKit
 import ImageIO
 import UniformTypeIdentifiers
 
-let width = 960, height = 340
+let width = 960, height = 340, scale = 2
 let lines = ["I wrote this sentence quickly and found a typo.", "ArrowKeys lets me fix it without leaving the letters."]
 let font = NSFont.systemFont(ofSize: 26, weight: .regular)
 let textColor = NSColor(calibratedWhite: 0.92, alpha: 1)
+let mutedColor = NSColor(calibratedWhite: 0.62, alpha: 1)
 let orange = NSColor(calibratedRed: 0.93, green: 0.45, blue: 0.18, alpha: 1)
-let caption = NSColor(calibratedRed: 1.0, green: 0.72, blue: 0.45, alpha: 1)
+let captionColor = NSColor(calibratedRed: 1.0, green: 0.72, blue: 0.45, alpha: 1)
 let background = NSColor(calibratedRed: 0.106, green: 0.125, blue: 0.157, alpha: 1)
 let card = NSColor(calibratedRed: 0.15, green: 0.172, blue: 0.21, alpha: 1)
 let keyFill = NSColor(calibratedRed: 0.2, green: 0.226, blue: 0.27, alpha: 1)
 let keyBorder = NSColor(calibratedRed: 0.32, green: 0.35, blue: 0.4, alpha: 1)
 let textLeft: CGFloat = 64, lineTop: [CGFloat] = [70, 118]
 
-struct Frame { var line: Int; var column: Int; var key: String?; var label: String; var delay: Double }
+// Keyboard layout: Caps Lock on the home row, then I above K and J K L below, like arrow keys.
+let keySize: CGFloat = 58, gap: CGFloat = 8, topRow: CGFloat = 192, homeRow: CGFloat = topRow + keySize + gap
+let capsRect = NSRect(x: 64, y: homeRow, width: 150, height: keySize)
+let clusterLeft: CGFloat = 268
+let arrowKeys: [(letter: String, arrow: String, rect: NSRect)] = [
+    ("I", "↑", NSRect(x: clusterLeft + keySize + gap, y: topRow, width: keySize, height: keySize)),
+    ("J", "←", NSRect(x: clusterLeft, y: homeRow, width: keySize, height: keySize)),
+    ("K", "↓", NSRect(x: clusterLeft + keySize + gap, y: homeRow, width: keySize, height: keySize)),
+    ("L", "→", NSRect(x: clusterLeft + 2 * (keySize + gap), y: homeRow, width: keySize, height: keySize)),
+]
+let captionLeft: CGFloat = 500, captionRight = CGFloat(width) - 40
+let titleFont = NSFont.systemFont(ofSize: 26, weight: .semibold)
+let detailFont = NSFont.systemFont(ofSize: 22, weight: .regular)
 
-func isWordChar(_ c: Character) -> Bool { c.isLetter || c.isNumber }
-func previousWord(_ s: String, _ col: Int) -> Int {
-    let a = Array(s); var i = col
-    while i > 0 && !isWordChar(a[i - 1]) { i -= 1 }
-    while i > 0 && isWordChar(a[i - 1]) { i -= 1 }
-    return i
+struct Frame { var line: Int; var column: Int; var key: String?; var caps: Bool; var title: String; var detail: String; var delay: Double }
+
+var frames: [Frame] = []
+var line = 1, column = lines[1].count
+func hold(caps: Bool, _ title: String, _ detail: String, _ delay: Double) {
+    frames.append(Frame(line: line, column: column, key: nil, caps: caps, title: title, detail: detail, delay: delay))
 }
-func nextWord(_ s: String, _ col: Int) -> Int {
-    let a = Array(s); var i = col
-    while i < a.count && !isWordChar(a[i]) { i += 1 }
-    while i < a.count && isWordChar(a[i]) { i += 1 }
-    return i
+func press(_ key: String, _ detail: String, times: Int = 1, _ move: () -> Void) {
+    for _ in 0..<times {
+        move()
+        frames.append(Frame(line: line, column: column, key: key, caps: true, title: "Caps Lock + \(key)", detail: detail, delay: 0.3))
+        frames.append(Frame(line: line, column: column, key: nil, caps: true, title: "Caps Lock + \(key)", detail: detail, delay: 0.1))
+    }
 }
+hold(caps: false, "", "", 1.0)
+hold(caps: true, "Hold Caps Lock", "then press J, K, L or I", 1.4)
+press("I", "moves the cursor up", { line = 0; column = min(column, lines[0].count) })
+press("J", "moves the cursor left", times: 6, { column -= 1 })
+press("L", "moves the cursor right", times: 3, { column += 1 })
+press("K", "moves the cursor down", { line = 1; column = min(column, lines[1].count) })
+hold(caps: false, "Release Caps Lock", "and keep typing", 2.0)
+
+// Every caption must fit between the keys and the right edge.
+for f in frames {
+    let widest = max((f.title as NSString).size(withAttributes: [.font: titleFont]).width,
+                     (f.detail as NSString).size(withAttributes: [.font: detailFont]).width)
+    precondition(captionLeft + widest <= captionRight, "Caption does not fit: \(f.title) / \(f.detail)")
+}
+for text in lines {
+    precondition(textLeft + (text as NSString).size(withAttributes: [.font: font]).width <= CGFloat(width) - 64, "Line does not fit: \(text)")
+}
+
 func x(_ line: Int, _ column: Int) -> CGFloat {
     let prefix = String(Array(lines[line])[0..<column])
     return textLeft + (prefix as NSString).size(withAttributes: [.font: font]).width
 }
 
-// The script: each step presses a key while Caps Lock is held.
-var frames: [Frame] = []
-var line = 1, column = lines[1].count
-func hold(_ label: String, _ delay: Double) { frames.append(Frame(line: line, column: column, key: nil, label: label, delay: delay)) }
-func press(_ key: String, _ label: String, times: Int = 1, _ move: () -> Void) {
-    for _ in 0..<times {
-        move()
-        frames.append(Frame(line: line, column: column, key: key, label: label, delay: 0.32))
-        frames.append(Frame(line: line, column: column, key: nil, label: label, delay: 0.12))
-    }
+func drawCentered(_ text: String, in rect: NSRect, y: CGFloat, _ attrs: [NSAttributedString.Key: Any]) {
+    let size = (text as NSString).size(withAttributes: attrs)
+    (text as NSString).draw(at: NSPoint(x: rect.midX - size.width / 2, y: y), withAttributes: attrs)
 }
-hold("", 1.0)
-hold("Hold Caps Lock…", 0.8)
-press("I", "Caps Lock + I   moves up", { line = 0; column = min(column, lines[0].count) })
-press("H", "Caps Lock + H   jumps back a word", times: 3, { column = previousWord(lines[0], column) })
-press("J", "Caps Lock + J   moves one letter left", times: 2, { column -= 1 })
-press("L", "Caps Lock + L   moves one letter right", times: 2, { column += 1 })
-press("U", "Caps Lock + U   goes to the line start", { column = 0 })
-press(";", "Caps Lock + ;   jumps forward a word", times: 2, { column = nextWord(lines[0], column) })
-press("O", "Caps Lock + O   goes to the line end", { column = lines[0].count })
-press("K", "Caps Lock + K   moves down", { line = 1; column = min(column, lines[1].count) })
-hold("Release Caps Lock and keep typing", 1.8)
 
-func key(_ label: String, _ rect: NSRect, active: Bool) {
-    let path = NSBezierPath(roundedRect: rect, xRadius: 9, yRadius: 9)
+func drawKey(_ rect: NSRect, active: Bool) {
+    let path = NSBezierPath(roundedRect: rect, xRadius: 10, yRadius: 10)
     (active ? orange : keyFill).setFill(); path.fill()
     (active ? orange.highlight(withLevel: 0.2)! : keyBorder).setStroke(); path.lineWidth = 2; path.stroke()
-    let attrs: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: label.count > 1 ? 17 : 24, weight: .semibold),
-                                                .foregroundColor: active ? NSColor.white : textColor]
-    let size = (label as NSString).size(withAttributes: attrs)
-    (label as NSString).draw(at: NSPoint(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2), withAttributes: attrs)
 }
 
 func render(_ f: Frame) -> CGImage {
-    let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: width * 2, pixelsHigh: height * 2, bitsPerSample: 8, samplesPerPixel: 4,
-                               hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+    let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: width * scale, pixelsHigh: height * scale, bitsPerSample: 8,
+                               samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
     NSGraphicsContext.saveGraphicsState()
     let context = NSGraphicsContext(bitmapImageRep: rep)!
-    context.cgContext.translateBy(x: 0, y: CGFloat(height * 2))
-    context.cgContext.scaleBy(x: 2, y: -2)
+    context.cgContext.translateBy(x: 0, y: CGFloat(height * scale))
+    context.cgContext.scaleBy(x: CGFloat(scale), y: -CGFloat(scale))
     NSGraphicsContext.current = NSGraphicsContext(cgContext: context.cgContext, flipped: true)
     background.setFill(); NSRect(x: 0, y: 0, width: width, height: height).fill()
     card.setFill(); NSBezierPath(roundedRect: NSRect(x: 32, y: 40, width: width - 64, height: 140), xRadius: 14, yRadius: 14).fill()
@@ -84,19 +94,23 @@ func render(_ f: Frame) -> CGImage {
     }
     orange.setFill()
     NSRect(x: x(f.line, f.column) - 1, y: lineTop[f.line] + 2, width: 3, height: 32).fill()
-    let capsHeld = f.label.hasPrefix("Caps Lock") || f.label.hasPrefix("Hold")
-    key("caps lock", NSRect(x: 64, y: 248, width: 150, height: 54), active: capsHeld)
-    let letters = ["U", "I", "O", "H", "J", "K", "L", ";"]
-    let positions: [String: (CGFloat, CGFloat)] = ["U": (0, 0), "I": (1, 0), "O": (2, 0), "H": (-0.75, 1), "J": (0.25, 1), "K": (1.25, 1), "L": (2.25, 1), ";": (3.25, 1)]
-    for letter in letters {
-        let (col, row) = positions[letter]!
-        key(letter, NSRect(x: 300 + col * 62, y: 186 + row * 62, width: 54, height: 54), active: f.key == letter)
+
+    drawKey(capsRect, active: f.caps)
+    drawCentered("caps lock", in: capsRect, y: capsRect.midY - 11,
+                 [.font: NSFont.systemFont(ofSize: 18, weight: .semibold), .foregroundColor: f.caps ? NSColor.white : textColor])
+    drawCentered("+", in: NSRect(x: capsRect.maxX, y: 0, width: clusterLeft - capsRect.maxX, height: 0), y: homeRow + 12,
+                 [.font: NSFont.systemFont(ofSize: 26, weight: .medium), .foregroundColor: mutedColor])
+    for key in arrowKeys {
+        let active = f.key == key.letter
+        drawKey(key.rect, active: active)
+        drawCentered(key.letter, in: key.rect, y: key.rect.minY + 5,
+                     [.font: NSFont.systemFont(ofSize: 22, weight: .bold), .foregroundColor: active ? NSColor.white : textColor])
+        drawCentered(key.arrow, in: key.rect, y: key.rect.minY + 28,
+                     [.font: NSFont.systemFont(ofSize: 19, weight: .bold), .foregroundColor: active ? NSColor.white : orange])
     }
-    let parts = f.label.components(separatedBy: "   ")
-    let title: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 24, weight: .semibold), .foregroundColor: caption]
-    let detail: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 21, weight: .regular), .foregroundColor: textColor]
-    (parts[0] as NSString).draw(at: NSPoint(x: 600, y: parts.count > 1 ? 210 : 232), withAttributes: title)
-    if parts.count > 1 { (parts[1] as NSString).draw(at: NSPoint(x: 600, y: 248), withAttributes: detail) }
+
+    (f.title as NSString).draw(at: NSPoint(x: captionLeft, y: topRow + 34), withAttributes: [.font: titleFont, .foregroundColor: captionColor])
+    (f.detail as NSString).draw(at: NSPoint(x: captionLeft, y: topRow + 72), withAttributes: [.font: detailFont, .foregroundColor: textColor])
     NSGraphicsContext.restoreGraphicsState()
     return rep.cgImage!
 }
