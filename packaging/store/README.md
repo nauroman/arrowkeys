@@ -4,7 +4,7 @@ Build on Windows with the Windows SDK, PowerShell, Python and Pillow installed.
 Use the four values assigned to this app under **Partner Center → Product identity**.
 
 ```powershell
-.\packaging\build-store.ps1 -IdentityName '<Package/Identity/Name>' -Publisher '<Package/Identity/Publisher>' -PublisherDisplayName '<publisher display name>' -DisplayName 'Arrow Keys' -Version 1.1.3.0
+.\packaging\build-store.ps1 -IdentityName '<Package/Identity/Name>' -Publisher '<Package/Identity/Publisher>' -PublisherDisplayName '<publisher display name>' -DisplayName 'Arrow Keys' -Version 1.1.4.0
 ```
 
 The unsigned submission package and 300 × 300 listing logo are written to

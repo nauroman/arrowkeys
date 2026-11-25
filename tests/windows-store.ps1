@@ -27,6 +27,32 @@ try {
         Start-Sleep -Milliseconds 500
     }
     if (!$proc -or $proc.Path -ne (Join-Path $app.InstallLocation 'ArrowKeys.exe')) { throw 'Packaged guide did not open' }
+    # A script error opens a dialog titled after the executable and stops the rest of the startup code.
+    Add-Type -TypeDefinition @'
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Text;
+public class ProcessWindows {
+    delegate bool EnumProc(IntPtr hwnd, IntPtr lParam);
+    [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc proc, IntPtr lParam);
+    [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
+    [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr hwnd);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr hwnd, StringBuilder text, int max);
+    public static List<string> Titles(uint target) {
+        var titles = new List<string>();
+        EnumWindows((hwnd, _) => {
+            uint pid; GetWindowThreadProcessId(hwnd, out pid);
+            if (pid == target && IsWindowVisible(hwnd)) { var b = new StringBuilder(256); GetWindowText(hwnd, b, 256); titles.Add(b.ToString()); }
+            return true;
+        }, IntPtr.Zero);
+        return titles;
+    }
+}
+'@
+    Start-Sleep -Seconds 2
+    $titles = [ProcessWindows]::Titles([uint32]$proc.Id)
+    if ($titles -contains 'ArrowKeys.exe') { throw "The Store edition showed a script error at startup: $($titles -join ', ')" }
     $seen = Join-Path $env:LOCALAPPDATA "Packages\$($app.PackageFamilyName)\LocalState\guide-seen"
     if (!(Test-Path $seen)) { throw 'First-launch marker missing' }
     $state = Get-ItemPropertyValue -LiteralPath $startupTask -Name State
