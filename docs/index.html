@@ -120,14 +120,14 @@
   @keyframes blink { 50% { opacity: 0; } }
   .device-foot { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-24); align-items: center; padding: 16px 24px 24px; border-top: 1px solid var(--carbon-line); }
   @media (max-width: 520px) { .device-foot { grid-template-columns: minmax(0, 1fr); } }
-  .pad { display: grid; grid-template-columns: repeat(4, 46px); grid-auto-rows: 46px; gap: 6px; }
+  .pad { display: grid; grid-template-columns: 96px repeat(3, 46px); grid-auto-rows: 46px; gap: 6px; }
   .pad .keycap { all: unset; box-sizing: border-box; position: relative; display: grid; place-items: center; cursor: pointer; border-radius: 5px;
     background: var(--carbon-key); border: 1px solid var(--carbon-key-edge); box-shadow: 0 3px 0 var(--carbon-key-edge), inset 0 1px 0 rgba(255,255,255,.06);
     color: var(--on-carbon); font: 500 16px/1 var(--font); transition: transform .12s var(--ease), box-shadow .12s var(--ease), background .2s var(--ease); }
   .pad .keycap[data-k] { place-items: start; padding: 7px 0 0 9px; }
   .pad .keycap small { position: absolute; right: 7px; bottom: 5px; font-size: 13px; line-height: 1; color: var(--orange); }
   .pad .keycap:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
-  .pad .keycap.caps { grid-column: 1 / span 2; grid-row: 3; font-size: 12px; color: var(--on-carbon-muted); cursor: default; }
+  .pad .keycap.caps { grid-column: 1; grid-row: 2; margin-right: 8px; font-size: 12px; color: var(--on-carbon-muted); cursor: default; }
   .pad .keycap.on { background: var(--orange); border-color: var(--orange-edge); box-shadow: 0 1px 0 var(--orange-edge); transform: translateY(2px); color: #fff; }
   .pad .keycap.on small { color: #fff; }
   .readout { display: grid; gap: 6px; min-width: 0; }
@@ -271,14 +271,11 @@
              aria-label="Sample text. Hold Option or Alt and press J, K, L or I to move the cursor."></div>
         <div class="device-foot">
           <div class="pad" id="pad" aria-label="ArrowKeys keys">
-            <button type="button" class="keycap" data-k="u" style="grid-column:2;grid-row:1" aria-label="U, line start">U</button>
+            <span class="keycap caps" id="caps-key" aria-hidden="true">caps lock</span>
             <button type="button" class="keycap" data-k="i" style="grid-column:3;grid-row:1" aria-label="I, up">I<small>↑</small></button>
-            <button type="button" class="keycap" data-k="o" style="grid-column:4;grid-row:1" aria-label="O, line end">O</button>
-            <button type="button" class="keycap" data-k="h" style="grid-column:1;grid-row:2" aria-label="H, previous word">H</button>
             <button type="button" class="keycap" data-k="j" style="grid-column:2;grid-row:2" aria-label="J, left">J<small>←</small></button>
             <button type="button" class="keycap" data-k="k" style="grid-column:3;grid-row:2" aria-label="K, down">K<small>↓</small></button>
             <button type="button" class="keycap" data-k="l" style="grid-column:4;grid-row:2" aria-label="L, right">L<small>→</small></button>
-            <span class="keycap caps" id="caps-key" aria-hidden="true">caps lock</span>
           </div>
           <div class="readout" aria-live="polite">
             <b id="hint-title">Caps Lock + J moves left</b>
@@ -531,7 +528,7 @@
   });
 
   // A short tour plays until the visitor takes over; with reduced motion the field stays still.
-  const tour = ["i", "h", "h", "j", "j", "l", "u", ";", ";", "o", "k"];
+  const tour = ["i", "j", "j", "j", "j", "l", "l", "k", "j", "j", "l"];
   let step = 0, timer = null;
   function stopTour() {
     if (!timer) return;
