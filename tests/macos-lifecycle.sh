@@ -18,6 +18,12 @@ grep -Fq 'HYPERLINK "https://github.com/nauroman/arrowkeys"' "$welcome"
 grep -Fq 'HYPERLINK "https://github.com/nauroman/arrowkeys/releases/latest"' "$welcome"
 # A relocatable bundle would update another ArrowKeys copy instead of /Applications.
 test "$(xmllint --xpath 'count(//relocate/bundle)' "$stage/expanded/ArrowKeysApp.pkg/PackageInfo")" = 0
+if [[ ${MAC_EXPECT_SIGNED:-} == 1 ]]; then
+  # Release packages carry a Developer ID Installer signature and a stapled notarization ticket.
+  [[ $(pkgutil --check-signature "$1") == *'Developer ID Installer: '*'(B7UFH23G3L)'* ]]
+  xcrun stapler validate "$1"
+  [[ $(spctl --assess --type install -vv "$1" 2>&1) == *'source=Notarized Developer ID'* ]]
+fi
 test ! -e "$app"
 for cycle in 1 2; do
   sudo installer -pkg "$1" -target /
@@ -26,6 +32,11 @@ for cycle in 1 2; do
   prompt_refs=$(nm -u "$app/Contents/MacOS/ArrowKeys" | grep -F kAXTrustedCheckOptionPrompt || true)
   [[ -z "$prompt_refs" ]]
   lipo "$app/Contents/MacOS/ArrowKeys" -verify_arch arm64 x86_64
+  if [[ ${MAC_EXPECT_SIGNED:-} == 1 ]]; then
+    # The team requirement lets macOS keep Accessibility access across updates.
+    codesign --verify --strict -R='anchor apple generic and certificate leaf[subject.OU] = "B7UFH23G3L"' "$app"
+    [[ $(codesign -dv "$app" 2>&1) == *'(runtime)'* ]]
+  fi
   pkgutil --pkg-info com.nauroman.arrowkeys.native
   cmp "$repo/assets/ArrowKeys.icns" "$app/Contents/Resources/ArrowKeys.icns"
   cmp "$repo/assets/ArrowKeysMenuTemplate.svg" "$app/Contents/Resources/ArrowKeysMenuTemplate.svg"
