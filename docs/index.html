@@ -188,17 +188,15 @@
   /* Setup steps */
   .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--ink); }
   @media (max-width: 900px) { .steps { grid-template-columns: minmax(0, 1fr); } }
-  .step { display: grid; grid-template-rows: auto 1fr; border-bottom: 1px solid var(--hairline); min-width: 0; }
+  .step { display: grid; border-bottom: 1px solid var(--hairline); min-width: 0; }
   .steps .step + .step { border-left: 1px solid var(--hairline); }
   @media (max-width: 900px) { .steps .step + .step { border-left: 0; } }
-  .step-text { display: grid; gap: 8px; padding: var(--s-24) var(--s-24) var(--s-24) 0; }
+  .step-text { display: grid; gap: 8px; align-content: start; padding: var(--s-24) var(--s-24) var(--s-32) 0; }
   .steps .step + .step .step-text { padding-left: var(--s-24); }
   @media (max-width: 900px) { .steps .step + .step .step-text { padding-left: 0; } }
   .step-text .no { font-size: 14px; color: var(--muted); }
   .step-text h3 { font-size: 24px; font-weight: 400; }
   .step-text p { font-size: 15px; color: var(--muted); }
-  .shot { margin: 0; display: grid; place-items: center; min-height: 300px; padding: var(--s-24); background: var(--hairline); }
-  .shot img { max-height: 320px; width: auto; }
 
   /* Questions */
   .faq { border-top: 1px solid var(--ink); }
@@ -360,15 +358,12 @@
       <div class="steps">
         <div class="step">
           <div class="step-text"><span class="no">Step 1</span><h3>Open the installer</h3><p>Double-click the package, choose Continue and Install, and enter your Mac password. ArrowKeys starts by itself.</p></div>
-          <figure class="shot"><img src="images/mac-installer.webp" width="732" height="560" alt="The ArrowKeys installer welcome screen" loading="lazy"></figure>
         </div>
         <div class="step">
           <div class="step-text"><span class="no">Step 2</span><h3>Allow cursor movement</h3><p>Choose Open Accessibility Settings and turn on ArrowKeys. This window closes by itself once access is on.</p></div>
-          <figure class="shot"><img src="images/mac-access-guide.webp" width="410" height="482" alt="ArrowKeys asks to allow cursor movement, with an Open Accessibility Settings button" loading="lazy"></figure>
         </div>
         <div class="step">
           <div class="step-text"><span class="no">Step 3</span><h3>Start moving</h3><p>When the menu bar icon says Navigation active, hold Caps Lock and press J in any text.</p></div>
-          <figure class="shot"><img src="images/mac-menu.webp" width="383" height="256" alt="ArrowKeys menu: Navigation active, Accessibility Settings, Open at Login, Quit ArrowKeys" loading="lazy"></figure>
         </div>
       </div>
     </div>
