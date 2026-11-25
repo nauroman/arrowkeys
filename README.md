@@ -9,21 +9,28 @@ Hold <kbd>Caps Lock</kbd> and press <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>
 Free for <b>Windows</b> and <b>Mac</b>.</p>
 
 <p align="center">
-  <a href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1"><img src="https://img.shields.io/badge/Microsoft%20Store-Get%20it-111111?style=for-the-badge&logo=microsoft&logoColor=white" alt="Get it from the Microsoft Store"></a>
-  <img src="https://img.shields.io/badge/Mac%20App%20Store-coming%20soon-777777?style=for-the-badge&logo=apple&logoColor=white" alt="Mac App Store, coming soon">
-  <a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg"><img src="https://img.shields.io/badge/Download%20for%20Mac-signed%20by%20Apple-E0611C?style=for-the-badge&logo=apple&logoColor=white" alt="Download for Mac, signed and notarized by Apple"></a>
+  <a href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1"><img alt="Get it from Microsoft Store" src="https://img.shields.io/badge/Get_it_from-Microsoft_Store-111111?style=for-the-badge&labelColor=111111"></a>
+  <img alt="Mac App Store: coming soon" src="https://img.shields.io/badge/Mac_App_Store-coming_soon-8a8d91?style=for-the-badge&labelColor=8a8d91">
+  <a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg"><img alt="Download for Mac: signed by Apple" src="https://img.shields.io/badge/Download_for_Mac-signed_by_Apple-e0611c?style=for-the-badge&labelColor=111111"></a>
 </p>
 
 <p align="center">
-  <a href="https://nauroman.github.io/arrowkeys/">Website</a> ·
-  <a href="#shortcuts">Shortcuts</a> ·
-  <a href="#install">Install</a> ·
-  <a href="#questions">Questions</a> ·
-  <a href="https://ko-fi.com/nauroman">♥ Support on Ko-fi</a>
+  <a href="https://nauroman.github.io/arrowkeys/"><b>Website</b></a>
+  &nbsp;&nbsp;
+  <a href="#shortcuts">Shortcuts</a>
+  &nbsp;&nbsp;
+  <a href="#install">Install</a>
+  &nbsp;&nbsp;
+  <a href="#questions">Questions</a>
+  &nbsp;&nbsp;
+  <a href="https://ko-fi.com/nauroman">Support on Ko-fi</a>
 </p>
 
 <p align="center">
-  <img src="docs/images/demo.webp" width="720" alt="Animation: holding Caps Lock and pressing I, J, L and K moves the cursor up, left, right and down through two lines of text">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme-demo-dark.webp">
+    <img src="docs/images/readme-demo-light.webp" width="720" alt="Animation of the website's demo: with Caps Lock held, I moves the cursor up a line, J moves it left, L right and K down, and the keys light up as they are pressed">
+  </picture>
 </p>
 
 ## Why use it
@@ -60,6 +67,12 @@ Holding a key repeats it, just like a real arrow key. The highlighted keys show 
 **What happens to Caps Lock?** While ArrowKeys is running, Caps Lock no longer switches to capital letters. Use **Shift** for capitals as usual. Quit ArrowKeys and Caps Lock works as before.
 
 ## Install
+
+<p>
+  <a href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1"><img alt="Get it from Microsoft Store" src="https://img.shields.io/badge/Get_it_from-Microsoft_Store-111111?style=for-the-badge&labelColor=111111"></a>
+  <img alt="Mac App Store: coming soon" src="https://img.shields.io/badge/Mac_App_Store-coming_soon-8a8d91?style=for-the-badge&labelColor=8a8d91">
+  <a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg"><img alt="Download for Mac: signed by Apple" src="https://img.shields.io/badge/Download_for_Mac-signed_by_Apple-e0611c?style=for-the-badge&labelColor=111111"></a>
+</p>
 
 The usual way is your computer's app store. It keeps ArrowKeys updated, and Apple or Microsoft reviews every version first.
 

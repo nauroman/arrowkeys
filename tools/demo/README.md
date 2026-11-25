@@ -1,6 +1,23 @@
-# Demo animation
+# Demo animations
 
-`docs/images/demo.webp` is the animation at the top of the README. macOS can't encode WebP itself, so the frames go through a browser.
+## README animation (from the website)
+
+The README shows `docs/images/readme-demo-light.webp`, or `readme-demo-dark.webp` in GitHub's dark theme.
+Both are captured from the live keyboard demo on the website, so they always match it. Rebuild them after
+changing the demo in `docs/index.html`:
+
+```sh
+python3 tools/demo/capture-site.py
+```
+
+It needs Google Chrome (or set `CHROME` to another Chromium browser). Each frame is the demo's state
+after the first steps of its tour, captured on GitHub's page colour, encoded to WebP by Chrome and joined
+by `animate.py`. If you change the tour in `docs/index.html`, change `TOUR` in the script too.
+
+## Drawn animation
+
+`docs/images/demo.webp` is the earlier drawn animation; the README no longer uses it. macOS can't encode
+WebP itself, so the frames go through a browser.
 
 1. Render the frames:
 
