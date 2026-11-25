@@ -11,7 +11,10 @@ if !A_IsCompiled && FileExist(A_ScriptDir "\ArrowKeys.ico")
 else if !A_IsCompiled && FileExist(A_ScriptDir "\assets\ArrowKeys.ico")
     TraySetIcon A_ScriptDir "\assets\ArrowKeys.ico"
 
-A_TrayMenu.Insert("E&xit", "About ArrowKeys", (*) => Run("https://nauroman.github.io/arrowkeys/"))
+; The standalone script keeps AutoHotkey's standard tray items and adds About before Exit.
+; The Store edition replaces the whole tray menu, including its own About item, so skip it there.
+if !A_IsCompiled
+    A_TrayMenu.Insert("E&xit", "About ArrowKeys", (*) => Run("https://nauroman.github.io/arrowkeys/"))
 
 ; Caps is an Alt modifier here; never leave the Caps Lock toggle enabled.
 SetCapsLockState "AlwaysOff"
