@@ -11,6 +11,7 @@ A_IconTip := "Arrow Keys"
 A_TrayMenu.Delete()
 A_TrayMenu.Add("Shortcut guide", ShowGuide)
 A_TrayMenu.Default := "Shortcut guide"
+A_TrayMenu.Add("About Arrow Keys", (*) => Run("https://nauroman.github.io/arrowkeys/"))
 A_TrayMenu.Add("Exit Arrow Keys", (*) => ExitApp())
 
 ; Windows supplies the same per-package LocalState on upgrades.

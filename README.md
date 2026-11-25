@@ -2,6 +2,8 @@
 
 **Move the text cursor without taking your hands off the letters.** Hold **Caps Lock** and press **J K L I** to move left, down, right and up. ArrowKeys is free, works offline, and runs on Mac and Windows.
 
+**Website:** [nauroman.github.io/arrowkeys](https://nauroman.github.io/arrowkeys/)
+
 <img src="docs/images/demo.gif" width="720" alt="Animation: holding Caps Lock and pressing I, H, J, L, U, semicolon, O and K moves the cursor through two lines of text">
 
 [![Installer builds, tests and ClamAV scan](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml)

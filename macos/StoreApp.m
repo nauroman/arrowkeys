@@ -7,6 +7,7 @@
 static NSString *const loginChoiceRecorded = @"StoreLoginChoiceRecorded";
 static NSString *const deferredPermissionBuild = @"DeferredCursorPermissionForBuild";
 static NSString *const openedPermissionBuild = @"OpenedCursorPermissionForBuild";
+static NSString *const projectPage = @"https://nauroman.github.io/arrowkeys/";
 
 static NSString *currentBuild(void) {
     return [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleVersion"];
@@ -149,6 +150,10 @@ static NSButton *newLoginCheckbox(void) {
 
 - (void)revealApp:(id)sender {
     [NSWorkspace.sharedWorkspace activateFileViewerSelectingURLs:@[NSBundle.mainBundle.bundleURL]];
+}
+
+- (void)showProjectPage:(id)sender {
+    [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:projectPage]];
 }
 
 - (void)showPrivacyPolicy:(id)sender {
@@ -311,6 +316,7 @@ static NSButton *newLoginCheckbox(void) {
     _login = [menu addItemWithTitle:@"Open at Login" action:@selector(toggleLogin:) keyEquivalent:@""];
     _login.target = self;
     [menu addItemWithTitle:@"Privacy Policy…" action:@selector(showPrivacyPolicy:) keyEquivalent:@""].target = self;
+    [menu addItemWithTitle:@"About ArrowKeys…" action:@selector(showProjectPage:) keyEquivalent:@""].target = self;
     [menu addItemWithTitle:@"Quit ArrowKeys" action:@selector(terminate:) keyEquivalent:@"q"].target = NSApp;
     _item.menu = menu;
     [self watchBundle];

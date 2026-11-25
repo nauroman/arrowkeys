@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArrowKeys — move the cursor without leaving the letters</title>
+<meta name="description" content="Hold Caps Lock and press J, K, L, I to move the text cursor like arrow keys. Free and offline, for Mac and Windows.">
+<meta property="og:title" content="ArrowKeys">
+<meta property="og:description" content="Move the text cursor without leaving the letters. Free for Mac and Windows.">
+<meta property="og:image" content="https://nauroman.github.io/arrowkeys/images/icon-256.png">
+<link rel="icon" type="image/png" href="images/favicon-64.png">
+<style>
+  :root {
+    --bg: #f7f5f2; --surface: #ffffff; --text: #1d2026; --muted: #5d6470; --line: #e4e0da;
+    --accent: #e0661f; --accent-text: #ffffff; --accent-soft: #fbe6d8; --code: #f1eee9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15181d; --surface: #1e232a; --text: #eceef1; --muted: #a3a9b3; --line: #2e343d;
+      --accent: #f07a33; --accent-text: #1a0d04; --accent-soft: #3a2518; --code: #262c35;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  a { color: var(--accent); }
+  img { max-width: 100%; height: auto; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
+  header.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
+  header.top .wrap { display: flex; align-items: center; gap: 16px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); text-decoration: none; }
+  .brand img { width: 30px; height: 30px; }
+  nav { margin-left: auto; display: flex; gap: 18px; font-size: 15px; }
+  nav a { color: var(--muted); text-decoration: none; }
+  nav a:hover { color: var(--text); }
+  @media (max-width: 720px) { nav { display: none; } }
+
+  .hero { padding: 64px 0 32px; text-align: center; }
+  .hero img.icon { width: 112px; height: 112px; }
+  h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.1; margin: 18px 0 14px; letter-spacing: -0.02em; }
+  .lead { font-size: clamp(18px, 2.4vw, 22px); color: var(--muted); max-width: 680px; margin: 0 auto 28px; }
+  .buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 12px;
+    font-weight: 600; text-decoration: none; border: 1px solid var(--line); color: var(--text); background: var(--surface); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .btn:hover { filter: brightness(1.06); }
+  .note { font-size: 14px; color: var(--muted); margin-top: 12px; }
+  .demo { margin: 40px auto 0; max-width: 820px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line);
+    box-shadow: 0 20px 50px rgba(0,0,0,.18); }
+  .demo img { display: block; width: 100%; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: clamp(26px, 3.6vw, 34px); margin: 0 0 12px; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); margin: 0 0 28px; max-width: 720px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; }
+  .card h3 { margin: 0 0 6px; font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); font-size: 16px; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--line); font-size: 16px; }
+  th { color: var(--muted); font-weight: 600; font-size: 14px; }
+  tr:last-child td { border-bottom: 0; }
+  kbd { display: inline-block; min-width: 30px; text-align: center; padding: 2px 8px; border-radius: 6px; background: var(--code);
+    border: 1px solid var(--line); border-bottom-width: 2px; font: 600 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .keyboard { margin-top: 24px; border-radius: 12px; }
+
+  .steps { display: grid; gap: 28px; }
+  .step { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
+  .step .num { display: inline-flex; width: 32px; height: 32px; border-radius: 50%; align-items: center; justify-content: center;
+    background: var(--accent-soft); color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+  .step h3 { margin: 0 0 6px; font-size: 20px; }
+  .step p { margin: 0 0 8px; color: var(--muted); }
+  .step figure { margin: 0; text-align: center; }
+  .step figure img { max-height: 340px; }
+  @media (max-width: 720px) { .step { grid-template-columns: 1fr; } }
+
+  .support { text-align: center; }
+  .support .sub { margin-left: auto; margin-right: auto; }
+  footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="images/favicon-64.png" alt="">ArrowKeys</a>
+    <nav>
+      <a href="#why">Why</a>
+      <a href="#shortcuts">Shortcuts</a>
+      <a href="#mac">Mac setup</a>
+      <a href="#windows">Windows</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#support">Support</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <img class="icon" src="images/icon-256.png" alt="ArrowKeys icon">
+    <h1>Move the cursor without leaving the letters</h1>
+    <p class="lead">Hold <kbd>Caps Lock</kbd> and press <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>I</kbd> to move like arrow keys. Free, works offline, for Mac and Windows.</p>
+    <div class="buttons">
+      <a class="btn primary" href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg">Download for Mac</a>
+      <a class="btn" href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1">Get it for Windows</a>
+      <a class="btn" href="https://github.com/nauroman/arrowkeys">Source on GitHub</a>
+    </div>
+    <p class="note">Mac: macOS 13 or newer, Apple silicon and Intel, about 1 MB, signed and notarized by Apple. Windows: Microsoft Store or <a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe">installer</a>.</p>
+    <div class="demo"><img src="images/demo.gif" width="960" height="340" alt="Animation: holding Caps Lock and pressing I, H, J, L, U, semicolon, O and K moves the cursor through two lines of text"></div>
+  </div>
+
+  <section id="why">
+    <div class="wrap">
+      <h2>Why it helps</h2>
+      <p class="sub">When you type, your fingers rest on the letters. The arrow keys sit in the far corner, and on many laptops they are tiny. Every typo fix means reaching over, looking down and finding your place again. ArrowKeys puts the arrows under your right hand.</p>
+      <div class="cards">
+        <div class="card"><h3>Hands stay in place</h3><p>Caps Lock is right under your left little finger. Hold it like Shift, move with your right hand, let go and keep typing.</p></div>
+        <div class="card"><h3>Works where you type</h3><p>Emails, documents, chats, notes, browsers and code editors. ArrowKeys sends ordinary arrow keys, which almost every app understands.</p></div>
+        <div class="card"><h3>Private</h3><p>No account, no internet, no data collection. It only reacts to its eight shortcuts and leaves all other typing alone.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="shortcuts">
+    <div class="wrap">
+      <h2>The shortcuts</h2>
+      <p class="sub">Hold <kbd>Caps Lock</kbd> and press one of these keys. Holding a key repeats it, just like a real arrow key. Use <kbd>Shift</kbd> for capital letters while ArrowKeys runs.</p>
+      <table>
+        <tr><th>Key</th><th>Moves the cursor</th><th>Same as</th></tr>
+        <tr><td><kbd>J</kbd></td><td>One letter left</td><td>←</td></tr>
+        <tr><td><kbd>L</kbd></td><td>One letter right</td><td>→</td></tr>
+        <tr><td><kbd>I</kbd></td><td>One line up</td><td>↑</td></tr>
+        <tr><td><kbd>K</kbd></td><td>One line down</td><td>↓</td></tr>
+        <tr><td><kbd>H</kbd></td><td>Back one word</td><td>Option + ← on Mac, Ctrl + ← on Windows</td></tr>
+        <tr><td><kbd>;</kbd></td><td>Forward one word</td><td>Option + → on Mac, Ctrl + → on Windows</td></tr>
+        <tr><td><kbd>U</kbd></td><td>Start of the line</td><td>Command + ← on Mac, Home on Windows</td></tr>
+        <tr><td><kbd>O</kbd></td><td>End of the line</td><td>Command + → on Mac, End on Windows</td></tr>
+      </table>
+      <img class="keyboard" src="images/keyboard.png" width="1946" height="551" alt="Keyboard with Caps Lock and the J, K, L, I keys highlighted">
+    </div>
+  </section>
+
+  <section id="mac">
+    <div class="wrap">
+      <h2>Set up on a Mac</h2>
+      <p class="sub">It takes about a minute. You do it once, and updates keep the permission.</p>
+      <div class="steps">
+        <div class="step">
+          <div><span class="num">1</span><h3>Install</h3><p><a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg">Download the installer</a>, double-click it, choose <b>Continue</b> and <b>Install</b>, and enter your Mac password. ArrowKeys starts by itself.</p></div>
+          <figure><img src="images/mac-installer.png" width="732" height="560" alt="The ArrowKeys installer welcome screen"></figure>
+        </div>
+        <div class="step">
+          <div><span class="num">2</span><h3>Allow cursor movement</h3><p>macOS asks you to approve any app that presses keys for you. Choose <b>Open Accessibility Settings</b> and turn on <b>ArrowKeys</b>. This window closes by itself once access is on.</p></div>
+          <figure><img src="images/mac-access-guide.png" width="410" height="482" alt="ArrowKeys window asking to allow cursor movement, with an Open Accessibility Settings button"></figure>
+        </div>
+        <div class="step">
+          <div><span class="num">3</span><h3>Start moving</h3><p>ArrowKeys lives in the menu bar, with no window or Dock icon. Its four-arrow menu shows <b>Navigation active</b> when everything is ready. Open any text, hold <kbd>Caps Lock</kbd> and press <kbd>J</kbd>.</p><p>It starts when you log in and works with every keyboard, including ones you connect later.</p></div>
+          <figure><img src="images/mac-menu.png" width="383" height="256" alt="ArrowKeys menu: Navigation active, Accessibility Settings, Open at Login, Quit ArrowKeys"></figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="windows">
+    <div class="wrap">
+      <h2>Set up on Windows</h2>
+      <p class="sub">The easiest way is <a href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1">Arrow Keys in the Microsoft Store</a>. Install it, open it once, and it starts with Windows from then on.</p>
+      <div class="cards">
+        <div class="card"><h3>Microsoft Store</h3><p>Installs and updates automatically. Open the app once to turn on navigation and startup at sign-in.</p></div>
+        <div class="card"><h3>Installer</h3><p><a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe">ArrowKeys-Windows-Setup.exe</a> has no publisher signature, so Windows may say <b>Windows protected your PC</b>. Choose <b>More info</b>, then <b>Run anyway</b>.</p></div>
+        <div class="card"><h3>Remove it</h3><p>Uninstall <b>ArrowKeys</b> in <b>Settings → Apps → Installed apps</b>. Caps Lock goes back to normal.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="privacy">
+    <div class="wrap">
+      <h2>Privacy and safety</h2>
+      <p class="sub">ArrowKeys works offline. It does not record what you type, collect personal data, show ads or connect to the internet. The <a href="https://github.com/nauroman/arrowkeys">source code</a> is public, and every release is built on GitHub from that code, tested and scanned for viruses. The Mac version is signed by the developer and notarized by Apple. <a href="https://github.com/nauroman/arrowkeys/blob/main/PRIVACY.md">Read the privacy policy</a></p>
+      <div class="cards">
+        <div class="card"><h3>Need help?</h3><p>See <a href="https://github.com/nauroman/arrowkeys#questions">common questions</a> or <a href="https://github.com/nauroman/arrowkeys/issues">ask on GitHub</a>.</p></div>
+        <div class="card"><h3>Uninstall on a Mac</h3><p>Choose <b>Quit ArrowKeys</b> in its menu, then move it from <b>Applications</b> to the Trash. Caps Lock goes back to how it was.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="support" class="support">
+    <div class="wrap">
+      <h2>Support ArrowKeys</h2>
+      <p class="sub">ArrowKeys is free and open source. If it saves you time every day, you can help keep it going.</p>
+      <div class="buttons">
+        <!-- DONATE_BUTTON: add the donation link here once the account exists. -->
+        <a class="btn" href="https://github.com/nauroman/arrowkeys">★ Star on GitHub</a>
+        <a class="btn" href="https://github.com/nauroman/arrowkeys/issues">Suggest an idea</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>ArrowKeys · <a href="https://github.com/nauroman/arrowkeys/blob/main/LICENSE">MIT license</a></span>
+    <span><a href="https://github.com/nauroman/arrowkeys">GitHub</a> · <a href="https://github.com/nauroman/arrowkeys/releases">Releases</a> · <a href="https://github.com/nauroman/arrowkeys/blob/main/PRIVACY.md">Privacy</a></span>
+  </div>
+</footer>
+</body>
+</html>
