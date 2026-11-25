@@ -1,12 +1,37 @@
-# <img src="docs/images/icon-256.webp" width="48" alt=""> ArrowKeys
+<p align="center">
+  <img src="docs/images/icon-256.webp" width="112" alt="ArrowKeys icon">
+</p>
 
-**Move the text cursor without taking your hands off the letters.** Hold **Caps Lock** and press **J K L I** to move left, down, right and up. ArrowKeys is free, works offline, and runs on Mac and Windows.
+<h1 align="center">ArrowKeys</h1>
 
-**Website:** [nauroman.github.io/arrowkeys](https://nauroman.github.io/arrowkeys/)
+<p align="center"><b>Move the cursor without leaving the letters.</b><br>
+Hold <kbd>Caps Lock</kbd> and press <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>I</kbd>. They work as arrow keys in every app.<br>
+Free for <b>Windows</b> and <b>Mac</b>.</p>
 
-<img src="docs/images/demo.webp" width="720" alt="Animation: holding Caps Lock and pressing I, J, L and K moves the cursor up, left, right and down through two lines of text">
+<p align="center">
+  <a href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1"><img alt="Get it from Microsoft Store" src="https://img.shields.io/badge/Get_it_from-Microsoft_Store-111111?style=for-the-badge&labelColor=111111"></a>
+  <img alt="Mac App Store: coming soon" src="https://img.shields.io/badge/Mac_App_Store-coming_soon-8a8d91?style=for-the-badge&labelColor=8a8d91">
+  <a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg"><img alt="Download for Mac: signed by Apple" src="https://img.shields.io/badge/Download_for_Mac-signed_by_Apple-e0611c?style=for-the-badge&labelColor=111111"></a>
+</p>
 
-[![Installer builds, tests and ClamAV scan](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml)
+<p align="center">
+  <a href="https://nauroman.github.io/arrowkeys/"><b>Website</b></a>
+  &nbsp;&nbsp;
+  <a href="#shortcuts">Shortcuts</a>
+  &nbsp;&nbsp;
+  <a href="#install">Install</a>
+  &nbsp;&nbsp;
+  <a href="#questions">Questions</a>
+  &nbsp;&nbsp;
+  <a href="https://ko-fi.com/nauroman">Support on Ko-fi</a>
+</p>
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme-demo-dark.webp">
+    <img src="docs/images/readme-demo-light.webp" width="720" alt="Animation of the website's demo: with Caps Lock held, I moves the cursor up a line, J moves it left, L right and K down, and the keys light up as they are pressed">
+  </picture>
+</p>
 
 ## Why use it
 
@@ -42,6 +67,12 @@ Holding a key repeats it, just like a real arrow key. The highlighted keys show 
 **What happens to Caps Lock?** While ArrowKeys is running, Caps Lock no longer switches to capital letters. Use **Shift** for capitals as usual. Quit ArrowKeys and Caps Lock works as before.
 
 ## Install
+
+<p>
+  <a href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1"><img alt="Get it from Microsoft Store" src="https://img.shields.io/badge/Get_it_from-Microsoft_Store-111111?style=for-the-badge&labelColor=111111"></a>
+  <img alt="Mac App Store: coming soon" src="https://img.shields.io/badge/Mac_App_Store-coming_soon-8a8d91?style=for-the-badge&labelColor=8a8d91">
+  <a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg"><img alt="Download for Mac: signed by Apple" src="https://img.shields.io/badge/Download_for_Mac-signed_by_Apple-e0611c?style=for-the-badge&labelColor=111111"></a>
+</p>
 
 The usual way is your computer's app store. It keeps ArrowKeys updated, and Apple or Microsoft reviews every version first.
 
@@ -89,17 +120,35 @@ After installation, open any text, hold **Caps Lock** and press **J**. To remove
 
 ## Questions
 
-**The cursor doesn't move. What should I check?** On a Mac, click the four-arrow icon in the menu bar. If the menu does not say **Navigation active**, choose the item at the top and follow the steps. Some apps, games and windows running as administrator on Windows may ignore simulated keys.
+<details><summary><b>The cursor doesn't move. What should I check?</b></summary>
 
-**The Accessibility switch is on, but ArrowKeys still asks for access.** Choose **Accessibility Settings…** in the ArrowKeys menu to open the list of apps. Select ArrowKeys and click **−**. Then click **+**, add **ArrowKeys** from **Applications**, and turn it on.
+On a Mac, click the four-arrow icon in the menu bar. If the menu does not say **Navigation active**, choose the item at the top and follow the steps. Some apps, games and windows running as administrator on Windows may ignore simulated keys.
 
-**Can I still type capital letters?** Yes, with **Shift**. Only the Caps Lock toggle is turned off while ArrowKeys runs.
+</details>
+<details><summary><b>The Accessibility switch is on, but ArrowKeys still asks for access.</b></summary>
 
-**Is it safe to give ArrowKeys Accessibility access?** macOS asks for this permission for any app that presses keys for you. ArrowKeys only reacts to its eight shortcuts. It does not record what you type, collect data or connect to the internet. The [source code](macos/ArrowKeys.m) is public, and every release is built on GitHub from that code and scanned for viruses. See the [privacy policy](PRIVACY.md).
+Choose **Accessibility Settings…** in the ArrowKeys menu to open the list of apps. Select ArrowKeys and click **−**. Then click **+**, add **ArrowKeys** from **Applications**, and turn it on.
 
-**Does it work with my keyboard layout?** ArrowKeys uses key positions, not letters. On a Mac, the shortcuts stay on the same physical keys even with a Russian or another layout. On Windows, letter keys depend on the layout, so on a Russian layout **;** may be on a different key.
+</details>
+<details><summary><b>Can I still type capital letters?</b></summary>
+
+Yes, with **Shift**. Only the Caps Lock toggle is turned off while ArrowKeys runs.
+
+</details>
+<details><summary><b>Is it safe to give ArrowKeys Accessibility access?</b></summary>
+
+macOS asks for this permission for any app that presses keys for you. ArrowKeys only reacts to its eight shortcuts. It does not record what you type, collect data or connect to the internet. The [source code](macos/ArrowKeys.m) is public, and every release is built on GitHub from that code and scanned for viruses. See the [privacy policy](PRIVACY.md).
+
+</details>
+<details><summary><b>Does it work with my keyboard layout?</b></summary>
+
+ArrowKeys uses key positions, not letters. On a Mac, the shortcuts stay on the same physical keys even with a Russian or another layout. On Windows, letter keys depend on the layout, so on a Russian layout **;** may be on a different key.
+
+</details>
 
 ## More details
+
+<details><summary><b>For technical users: how each edition works, running from source, verifying downloads</b></summary>
 
 ### Mac
 
@@ -137,6 +186,8 @@ You can check that a download matches GitHub's signed build record with the [Git
 gh attestation verify ArrowKeys-macOS.pkg --repo nauroman/arrowkeys
 gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
 ```
+
+</details>
 
 ## Support ArrowKeys
 
