@@ -14,6 +14,7 @@ static NSString *const loginSetupKey = @"OpenAtLoginConfigured";
 static NSString *const setupShownKey = @"AccessibilitySetupShownForBuild";
 static NSString *const trustedBuildKey = @"AccessibilityTrustedBuild";
 static NSString *const trustedAdHocKey = @"AccessibilityTrustedBuildAdHoc";
+static NSString *const projectPage = @"https://nauroman.github.io/arrowkeys/";
 
 static void rememberAccess(NSUserDefaults *defaults, NSString *build, BOOL adHoc) {
     if ([[defaults stringForKey:trustedBuildKey] isEqualToString:build] && [defaults boolForKey:trustedAdHocKey] == adHoc) return;
@@ -189,6 +190,9 @@ static BOOL isAdHocSigned(void) {
     // granted. AXIsProcessTrusted already lists ArrowKeys in Settings, and the guide closes itself.
     [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:@"x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"]];
 }
+- (void)showProjectPage:(id)sender {
+    [NSWorkspace.sharedWorkspace openURL:[NSURL URLWithString:projectPage]];
+}
 - (void)accessMayHaveChanged:(NSNotification *)notification {
     // macOS updates the trust check just after it announces a change, so check again shortly.
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(connect) object:nil];
@@ -234,6 +238,7 @@ static BOOL isAdHocSigned(void) {
     [menu addItemWithTitle:@"Accessibility Settings…" action:@selector(access:) keyEquivalent:@""].target = self;
     self.login = [menu addItemWithTitle:@"Open at Login" action:@selector(toggleLogin:) keyEquivalent:@""];
     self.login.target = self;
+    [menu addItemWithTitle:@"About ArrowKeys…" action:@selector(showProjectPage:) keyEquivalent:@""].target = self;
     [menu addItemWithTitle:@"Quit ArrowKeys" action:@selector(terminate:) keyEquivalent:@"q"].target = NSApp;
     self.item.menu = menu;
     SMAppService *loginService = SMAppService.mainAppService;
