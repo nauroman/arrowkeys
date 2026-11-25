@@ -1,5 +1,7 @@
-// Renders docs/images/demo.gif, a caret moving through two lines of text while Caps Lock and J, I, K or L are held.
-// Usage: swift docs/images/make-demo.swift docs/images/demo.gif
+// Renders the frames of docs/images/demo.webp, a caret moving through two lines of text while Caps Lock and
+// J, I, K or L are held. Writes PNG frames and frames.json into a folder; see tools/demo/README.md for the rest.
+// The first frame is the whole picture and each later frame is only the rectangle that changed.
+// Usage: swift tools/demo/make-demo.swift <frames folder>
 import AppKit
 import ImageIO
 import UniformTypeIdentifiers
@@ -115,11 +117,49 @@ func render(_ f: Frame) -> CGImage {
     return rep.cgImage!
 }
 
-let out = URL(fileURLWithPath: CommandLine.arguments[1])
-let destination = CGImageDestinationCreateWithURL(out as CFURL, UTType.gif.identifier as CFString, frames.count, nil)!
-CGImageDestinationSetProperties(destination, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
-for f in frames {
-    CGImageDestinationAddImage(destination, render(f), [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFDelayTime: f.delay]] as CFDictionary)
+// Pixels of a rendered frame, for finding the rectangle that changed since the previous one.
+func pixels(_ image: CGImage) -> [UInt8] {
+    var data = [UInt8](repeating: 0, count: image.width * image.height * 4)
+    let context = CGContext(data: &data, width: image.width, height: image.height, bitsPerComponent: 8, bytesPerRow: image.width * 4,
+                            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+    context.draw(image, in: CGRect(x: 0, y: 0, width: image.width, height: image.height))
+    return data
 }
-precondition(CGImageDestinationFinalize(destination))
+
+func changedRect(_ a: [UInt8], _ b: [UInt8], width: Int, height: Int) -> CGRect? {
+    var minX = width, minY = height, maxX = -1, maxY = -1
+    for y in 0..<height {
+        for x in 0..<width where a[(y * width + x) * 4 ..< (y * width + x) * 4 + 4] != b[(y * width + x) * 4 ..< (y * width + x) * 4 + 4] {
+            minX = min(minX, x); maxX = max(maxX, x); minY = min(minY, y); maxY = max(maxY, y)
+        }
+    }
+    guard maxX >= 0 else { return nil }
+    // WebP stores frame offsets divided by two, so start each rectangle on an even pixel.
+    minX -= minX % 2; minY -= minY % 2
+    return CGRect(x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1)
+}
+
+func writePNG(_ image: CGImage, _ url: URL) {
+    let destination = CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil)!
+    CGImageDestinationAddImage(destination, image, nil)
+    precondition(CGImageDestinationFinalize(destination))
+}
+
+let folder = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
+try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+var manifest: [[String: Any]] = []
+var previous: [UInt8]? = nil
+for (index, f) in frames.enumerated() {
+    let image = render(f)
+    let current = pixels(image)
+    let full = CGRect(x: 0, y: 0, width: image.width, height: image.height)
+    let rect = previous.map { changedRect($0, current, width: image.width, height: image.height) ?? CGRect(x: 0, y: 0, width: 2, height: 2) } ?? full
+    let name = String(format: "frame-%02d.png", index)
+    writePNG(image.cropping(to: rect)!, folder.appendingPathComponent(name))
+    manifest.append(["file": name, "x": Int(rect.minX), "y": Int(rect.minY), "width": Int(rect.width), "height": Int(rect.height),
+                     "duration": Int((f.delay * 1000).rounded())])
+    previous = current
+}
+let json = try JSONSerialization.data(withJSONObject: ["width": width * scale, "height": height * scale, "frames": manifest], options: [.prettyPrinted, .sortedKeys])
+try json.write(to: folder.appendingPathComponent("frames.json"))
 print("frames:", frames.count)

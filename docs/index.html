@@ -2,215 +2,548 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ArrowKeys — move the cursor without leaving the letters</title>
-<meta name="description" content="Hold Caps Lock and press J, K, L, I to move the text cursor like arrow keys. Free and offline, for Mac and Windows.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ArrowKeys</title>
+<meta name="description" content="Hold Caps Lock and press J, K, L or I to move the text cursor like arrow keys. Free for Mac and Windows, from the Microsoft Store or as a signed Mac download.">
 <meta property="og:title" content="ArrowKeys">
 <meta property="og:description" content="Move the text cursor without leaving the letters. Free for Mac and Windows.">
-<meta property="og:image" content="https://nauroman.github.io/arrowkeys/images/icon-256.png">
-<link rel="icon" type="image/png" href="images/favicon-64.png">
+<meta property="og:image" content="https://nauroman.github.io/arrowkeys/images/icon-256.webp">
+<link rel="icon" type="image/webp" href="images/favicon-64.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&display=swap">
 <style>
+  /* Layout: an industrial catalogue. Ruled light bands on a mist canvas, two carbon bands that hold the product,
+     and the live keyboard as the only rich object. Square cuts everywhere except the keycaps themselves. */
   :root {
-    --bg: #f7f5f2; --surface: #ffffff; --text: #1d2026; --muted: #5d6470; --line: #e4e0da;
-    --accent: #e0661f; --accent-text: #ffffff; --accent-soft: #fbe6d8; --code: #f1eee9;
+    --canvas: #f6f8f7;      /* page */
+    --ink: #000000;         /* text and strong rules */
+    --carbon: #0f0e12;      /* dark display bands */
+    --hairline: #e3e5e4;    /* rules between bands and cells */
+    --muted: #64676b;       /* secondary text, passes AA on canvas */
+    --orange: #e0611c;      /* the keycap orange: the product's only color */
+    --orange-edge: #a6440c;
+    --on-carbon: #f6f8f7;
+    --on-carbon-muted: #9c9aa4;
+    --carbon-line: #2a2930;
+    --key: #ffffff;
+    --key-edge: #c9cccb;
+    --carbon-key: #22212a;
+    --carbon-key-edge: #050407;
+    --font: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --s-12: 12px; --s-16: 16px; --s-24: 24px; --s-32: 32px; --s-48: 48px; --s-64: 64px; --s-96: 96px;
+    --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #15181d; --surface: #1e232a; --text: #eceef1; --muted: #a3a9b3; --line: #2e343d;
-      --accent: #f07a33; --accent-text: #1a0d04; --accent-soft: #3a2518; --code: #262c35;
+    :root:not([data-theme="light"]) {
+      --canvas: #0f0e12; --ink: #f6f8f7; --carbon: #000000; --hairline: #26252c; --muted: #9c9aa4;
+      --orange: #f07a33; --orange-edge: #b0501a; --carbon-line: #1d1c22; --key: #22212a; --key-edge: #050407; color-scheme: dark;
     }
   }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  :root[data-theme="dark"] {
+    --canvas: #0f0e12; --ink: #f6f8f7; --carbon: #000000; --hairline: #26252c; --muted: #9c9aa4;
+    --orange: #f07a33; --orange-edge: #b0501a; --carbon-line: #1d1c22; --key: #22212a; --key-edge: #050407; color-scheme: dark;
   }
-  a { color: var(--accent); }
-  img { max-width: 100%; height: auto; }
-  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px; }
-  header.top { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
-  header.top .wrap { display: flex; align-items: center; gap: 16px; height: 60px; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; color: var(--text); text-decoration: none; }
-  .brand img { width: 30px; height: 30px; }
-  nav { margin-left: auto; display: flex; gap: 18px; font-size: 15px; }
-  nav a { color: var(--muted); text-decoration: none; }
-  nav a:hover { color: var(--text); }
-  .support-link { margin-left: 18px; padding: 7px 15px; border-radius: 999px; background: var(--accent); color: var(--accent-text);
-    font-weight: 600; font-size: 15px; text-decoration: none; white-space: nowrap; }
-  .support-link:hover { filter: brightness(1.08); }
-  @media (max-width: 720px) { nav { display: none; } .support-link { margin-left: auto; } }
 
-  .hero { padding: 64px 20px 32px; text-align: center; }
-  .hero img.icon { width: 112px; height: 112px; }
-  h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.1; margin: 18px 0 14px; letter-spacing: -0.02em; }
-  .lead { font-size: clamp(18px, 2.4vw, 22px); color: var(--muted); max-width: 680px; margin: 0 auto 28px; }
-  .buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 22px; border-radius: 12px;
-    font-weight: 600; text-decoration: none; border: 1px solid var(--line); color: var(--text); background: var(--surface); }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-  .btn:hover { filter: brightness(1.06); }
-  .note { font-size: 14px; color: var(--muted); margin-top: 12px; }
-  .demo { margin: 40px auto 0; max-width: 820px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line);
-    box-shadow: 0 20px 50px rgba(0,0,0,.18); }
-  .demo img { display: block; width: 100%; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition: none !important; animation: none !important; } }
+  body { margin: 0; background: var(--canvas); color: var(--ink); font: 400 17px/1.6 var(--font); }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 20; background: var(--canvas); }
+  img { display: block; max-width: 100%; height: auto; }
+  a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; transition: color .3s var(--ease); }
+  :focus-visible { outline: 2px solid var(--orange); outline-offset: 3px; }
+  h1, h2, h3 { margin: 0; font-weight: 300; letter-spacing: -0.025em; text-wrap: balance; }
+  p { margin: 0; text-wrap: pretty; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+  .skip { position: absolute; left: -9999px; }
+  .skip:focus { left: 16px; top: 16px; z-index: 30; background: var(--ink); color: var(--canvas); padding: 8px 12px; }
 
-  section { padding: 56px 0; border-top: 1px solid var(--line); }
-  h2 { font-size: clamp(26px, 3.6vw, 34px); margin: 0 0 12px; letter-spacing: -0.01em; }
-  .sub { color: var(--muted); margin: 0 0 28px; max-width: 720px; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; }
-  .card h3 { margin: 0 0 6px; font-size: 18px; }
-  .card p { margin: 0; color: var(--muted); font-size: 16px; }
+  /* Square controls */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 20px; text-decoration: none;
+    font: 500 16px/1.2 var(--font); border: 1px solid var(--ink); background: var(--ink); color: var(--canvas); transition: background .3s var(--ease), color .3s var(--ease), transform .2s var(--ease); }
+  .btn:hover { background: transparent; color: var(--ink); }
+  .btn:active { transform: translateY(1px); }
+  .btn.line { background: transparent; color: var(--ink); }
+  .btn.line:hover { background: var(--ink); color: var(--canvas); }
+  .btn small { font-weight: 400; opacity: .75; }
+  .btn.soon { border-style: dashed; background: transparent; color: var(--muted); border-color: var(--muted); cursor: default; }
+  .btn.soon:hover { color: var(--muted); }
+  .on-carbon .btn { border-color: var(--on-carbon); background: var(--on-carbon); color: var(--carbon); }
+  .on-carbon .btn:hover { background: transparent; color: var(--on-carbon); }
+  .on-carbon .btn.soon { background: transparent; color: var(--on-carbon-muted); border-color: var(--on-carbon-muted); }
+  .on-carbon .btn.line { background: transparent; color: var(--on-carbon); border-color: var(--on-carbon); }
+  .on-carbon .btn.line:hover { background: var(--on-carbon); color: var(--carbon); }
+  .on-carbon .btn.soon:hover { color: var(--on-carbon-muted); }
 
-  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--line); font-size: 16px; }
-  th { color: var(--muted); font-weight: 600; font-size: 14px; }
-  tr:last-child td { border-bottom: 0; }
-  kbd { display: inline-block; min-width: 30px; text-align: center; padding: 2px 8px; border-radius: 6px; background: var(--code);
-    border: 1px solid var(--line); border-bottom-width: 2px; font: 600 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-  .keyboard { margin-top: 24px; border-radius: 12px; }
+  /* Header */
+  .top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: var(--canvas); border-bottom: 1px solid var(--hairline); }
+  .top .wrap { display: flex; align-items: center; gap: var(--s-24); height: 64px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 400; letter-spacing: -0.02em; text-decoration: none; }
+  .brand img { width: 26px; height: 26px; }
+  .top nav { margin-left: auto; display: flex; gap: var(--s-24); font-size: 15px; }
+  .top nav a { text-decoration: none; color: var(--muted); }
+  .top nav a:hover { color: var(--ink); }
+  .support-pill { display: inline-flex; align-items: center; min-height: 40px; padding: 8px 16px; background: var(--orange); color: #fff; text-decoration: none;
+    font-weight: 500; font-size: 15px; border: 1px solid var(--orange-edge); transition: filter .3s var(--ease); }
+  .support-pill:hover { filter: brightness(1.08); color: #fff; }
+  @media (max-width: 820px) { .top nav { display: none; } .support-pill { margin-left: auto; } }
 
-  .steps { display: grid; gap: 28px; }
-  .step { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
-  .step .num { display: inline-flex; width: 32px; height: 32px; border-radius: 50%; align-items: center; justify-content: center;
-    background: var(--accent-soft); color: var(--accent); font-weight: 700; margin-bottom: 8px; }
-  .step h3 { margin: 0 0 6px; font-size: 20px; }
-  .step p { margin: 0 0 8px; color: var(--muted); }
-  .step figure { margin: 0; text-align: center; }
-  .step figure img { max-height: 340px; }
-  @media (max-width: 720px) { .step { grid-template-columns: 1fr; } }
+  /* Carbon bands hold the product */
+  .band { background: var(--carbon); color: var(--on-carbon); }
+  .hero .wrap { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: var(--s-64); align-items: center;
+    padding-top: var(--s-96); padding-bottom: var(--s-96); }
+  @media (max-width: 960px) { .hero .wrap { grid-template-columns: minmax(0, 1fr); gap: var(--s-48); padding-top: var(--s-64); padding-bottom: var(--s-64); } }
+  .hero-copy { display: grid; gap: var(--s-24); min-width: 0; }
+  .hero h1 { font-size: clamp(44px, 6vw, 72px); line-height: 1.02; letter-spacing: -0.04em; max-width: 11em; }
+  .hero .lead { font-size: 20px; line-height: 1.5; color: var(--on-carbon-muted); max-width: 30em; }
+  .hero .lead strong { color: var(--on-carbon); font-weight: 500; }
+  .proof { font-size: 14px; color: var(--on-carbon-muted); }
 
-  .support { text-align: center; }
-  .support .sub { margin-left: auto; margin-right: auto; }
-  footer { padding: 32px 0 48px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); }
-  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
-  footer a { color: var(--muted); }
+  .choices { display: grid; gap: var(--s-12); margin-top: var(--s-8, 8px); }
+  .choice { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: var(--s-12); padding-top: var(--s-12); border-top: 1px solid var(--carbon-line); }
+  .choice > span { font-size: 14px; color: var(--on-carbon-muted); }
+  .choice.mine > span { color: var(--on-carbon); }
+  .choice .row { display: flex; flex-wrap: wrap; gap: var(--s-12); }
+  .other-link { font-size: 14px; color: var(--on-carbon-muted); }
+
+  /* The product: a text field and the keys that drive it */
+  .device { border: 1px solid var(--carbon-line); background: #17161c; min-width: 0; }
+  .device-bar { display: flex; justify-content: space-between; gap: var(--s-12); padding: 12px 18px; border-bottom: 1px solid var(--carbon-line);
+    font-size: 13px; color: var(--on-carbon-muted); }
+  .doc { padding: 24px 24px 12px; font: 400 clamp(16px, 1.6vw, 19px)/1.8 var(--font); color: var(--on-carbon); outline: none; cursor: text; min-height: 9.6em; }
+  .doc:focus-visible { box-shadow: inset 0 0 0 2px var(--orange); outline: none; }
+  .doc .ln { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .caret { display: inline-block; width: 2px; height: 1.2em; margin: 0 -1px; vertical-align: -0.2em; background: var(--orange); }
+  .doc.idle .caret { animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .device-foot { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s-24); align-items: center; padding: 16px 24px 24px; border-top: 1px solid var(--carbon-line); }
+  @media (max-width: 520px) { .device-foot { grid-template-columns: minmax(0, 1fr); } }
+  .pad { display: grid; grid-template-columns: 96px repeat(3, 46px); grid-auto-rows: 46px; gap: 6px; }
+  .pad .keycap { all: unset; box-sizing: border-box; position: relative; display: grid; place-items: center; cursor: pointer; border-radius: 5px;
+    background: var(--carbon-key); border: 1px solid var(--carbon-key-edge); box-shadow: 0 3px 0 var(--carbon-key-edge), inset 0 1px 0 rgba(255,255,255,.06);
+    color: var(--on-carbon); font: 500 16px/1 var(--font); transition: transform .12s var(--ease), box-shadow .12s var(--ease), background .2s var(--ease); }
+  .pad .keycap[data-k] { place-items: start; padding: 7px 0 0 9px; }
+  .pad .keycap small { position: absolute; right: 7px; bottom: 5px; font-size: 13px; line-height: 1; color: var(--orange); }
+  .pad .keycap:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+  .pad .keycap.caps { grid-column: 1; grid-row: 2; margin-right: 8px; font-size: 12px; color: var(--on-carbon-muted); cursor: default; }
+  .pad .keycap.on { background: var(--orange); border-color: var(--orange-edge); box-shadow: 0 1px 0 var(--orange-edge); transform: translateY(2px); color: #fff; }
+  .pad .keycap.on small { color: #fff; }
+  .readout { display: grid; gap: 6px; min-width: 0; }
+  .readout b { font-weight: 500; font-size: 18px; line-height: 1.3; color: var(--on-carbon); }
+  .readout span { font-size: 14px; line-height: 1.5; color: var(--on-carbon-muted); }
+  .kbd { display: inline-block; padding: 0 6px; border: 1px solid var(--carbon-line); border-radius: 4px; font-size: 13px; color: var(--on-carbon); white-space: nowrap; }
+
+  /* Light sections */
+  section { border-top: 1px solid var(--hairline); }
+  section > .wrap { padding-top: var(--s-96); padding-bottom: var(--s-96); }
+  @media (max-width: 720px) { section > .wrap { padding-top: var(--s-64); padding-bottom: var(--s-64); } }
+  .head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-32); align-items: end; margin-bottom: var(--s-48); }
+  @media (max-width: 820px) { .head { grid-template-columns: minmax(0, 1fr); gap: var(--s-12); } }
+  h2 { font-size: clamp(32px, 4.2vw, 48px); line-height: 1.08; }
+  .head p { color: var(--muted); font-size: 18px; max-width: 32em; }
+
+  /* Eight keys as a ruled catalogue grid */
+  .keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--ink); }
+  @media (max-width: 820px) { .keys { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .cell { display: grid; gap: var(--s-16); align-content: start; padding: var(--s-24) var(--s-24) var(--s-32) 0; border-bottom: 1px solid var(--hairline); }
+  .keys .cell:not(:nth-child(4n)) { border-right: 1px solid var(--hairline); }
+  .keys .cell:not(:nth-child(4n + 1)) { padding-left: var(--s-24); }
+  @media (max-width: 820px) {
+    .keys .cell:not(:nth-child(4n)) { border-right: 0; }
+    .keys .cell:nth-child(odd) { border-right: 1px solid var(--hairline); padding-left: 0; }
+    .keys .cell:nth-child(even) { padding-left: var(--s-24); }
+  }
+  .cap { display: inline-grid; place-items: center; width: 52px; height: 52px; border-radius: 6px; background: var(--key); border: 1px solid var(--key-edge);
+    box-shadow: 0 3px 0 var(--key-edge); font: 500 20px/1 var(--font); }
+  .cap.arrow { position: relative; place-items: start; padding: 8px 0 0 10px; }
+  .cap.arrow::after { content: attr(data-arrow); position: absolute; right: 8px; bottom: 7px; font-size: 14px; line-height: 1; color: var(--orange); }
+  .cell h3 { font-size: 22px; font-weight: 400; letter-spacing: -0.015em; }
+  .cell p { font-size: 14px; color: var(--muted); }
+  .footnote { margin-top: var(--s-32); max-width: 44em; color: var(--muted); }
+
+  /* Install: stores first, downloads as the backup */
+  .stores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid var(--ink); }
+  @media (max-width: 820px) { .stores { grid-template-columns: minmax(0, 1fr); } }
+  .store { display: grid; gap: var(--s-16); align-content: start; padding: var(--s-32) var(--s-32) var(--s-32) 0; border-bottom: 1px solid var(--hairline); min-width: 0; }
+  .stores .store + .store { padding-left: var(--s-32); border-left: 1px solid var(--hairline); }
+  @media (max-width: 820px) { .stores .store + .store { padding-left: 0; border-left: 0; } }
+  .store h3 { font-size: 32px; display: flex; align-items: baseline; gap: var(--s-12); flex-wrap: wrap; }
+  .store h3 em { font-style: normal; font-size: 14px; letter-spacing: 0; color: var(--orange-edge); }
+  :root:not([data-theme="light"]) .store h3 em { color: var(--orange); }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .store h3 em { color: var(--orange-edge); } }
+  .store dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px var(--s-16); font-size: 15px; }
+  .store dt { color: var(--muted); }
+  .store dd { margin: 0; }
+  .store .row { display: flex; flex-wrap: wrap; gap: var(--s-12); margin-top: var(--s-8, 8px); }
+  .backup { margin-top: var(--s-48); }
+  .backup h3 { font-size: 22px; font-weight: 400; margin-bottom: var(--s-16); }
+  .backup-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--hairline); }
+  @media (max-width: 820px) { .backup-list { grid-template-columns: minmax(0, 1fr); } }
+  .backup-list div { padding: var(--s-16) var(--s-24) var(--s-16) 0; border-bottom: 1px solid var(--hairline); display: grid; gap: 6px; }
+  .backup-list b { font-weight: 500; }
+  .backup-list p { font-size: 14px; color: var(--muted); }
+
+  /* Setup steps */
+  .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--ink); }
+  @media (max-width: 900px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+  .step { display: grid; border-bottom: 1px solid var(--hairline); min-width: 0; }
+  .steps .step + .step { border-left: 1px solid var(--hairline); }
+  @media (max-width: 900px) { .steps .step + .step { border-left: 0; } }
+  .step-text { display: grid; gap: 8px; align-content: start; padding: var(--s-24) var(--s-24) var(--s-32) 0; }
+  .steps .step + .step .step-text { padding-left: var(--s-24); }
+  @media (max-width: 900px) { .steps .step + .step .step-text { padding-left: 0; } }
+  .step-text .no { font-size: 14px; color: var(--muted); }
+  .step-text h3 { font-size: 24px; font-weight: 400; }
+  .step-text p { font-size: 15px; color: var(--muted); }
+
+  /* Questions */
+  .faq { border-top: 1px solid var(--ink); }
+  .faq details { border-bottom: 1px solid var(--hairline); }
+  .faq summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-16); padding: var(--s-24) 0; cursor: pointer; list-style: none; font-size: 20px; font-weight: 400; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; font-weight: 300; font-size: 24px; line-height: 1; color: var(--muted); }
+  .faq details[open] summary::after { content: "−"; }
+  .faq details p { padding-bottom: var(--s-24); max-width: 44em; color: var(--muted); }
+
+  /* Support */
+  .support .wrap { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--s-32); align-items: end; }
+  @media (max-width: 820px) { .support .wrap { grid-template-columns: minmax(0, 1fr); } }
+  .support p { margin-top: var(--s-16); color: var(--muted); max-width: 36em; }
+  .support .row { display: flex; flex-wrap: wrap; gap: var(--s-12); }
+  .btn.orange { background: var(--orange); border-color: var(--orange-edge); color: #fff; }
+  .btn.orange:hover { background: var(--orange); color: #fff; filter: brightness(1.08); }
+
+  /* Closing band */
+  .closing .wrap { padding-top: var(--s-96); padding-bottom: var(--s-48); display: grid; gap: var(--s-32); }
+  .closing h2 { max-width: 14em; }
+  .closing .choices { max-width: 640px; }
+  footer.band .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s-12) var(--s-24); padding-top: var(--s-24); padding-bottom: var(--s-32);
+    border-top: 1px solid var(--carbon-line); font-size: 14px; color: var(--on-carbon-muted); }
+  footer.band a { color: var(--on-carbon-muted); }
+  footer.band a:hover { color: var(--on-carbon); }
+  footer nav { display: flex; flex-wrap: wrap; gap: var(--s-24); }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="#"><img src="images/favicon-64.png" alt="">ArrowKeys</a>
-    <nav>
-      <a href="#why">Why</a>
-      <a href="#shortcuts">Shortcuts</a>
-      <a href="#mac">Mac setup</a>
-      <a href="#windows">Windows</a>
-      <a href="#privacy">Privacy</a>
+    <a class="brand" href="#"><img src="images/favicon-64.webp" width="26" height="26" alt="">ArrowKeys</a>
+    <nav aria-label="Sections">
+      <a href="#keys">Shortcuts</a>
+      <a href="#install">Install</a>
+      <a href="#setup">Mac setup</a>
+      <a href="#questions">Questions</a>
     </nav>
-    <a class="support-link" href="https://ko-fi.com/nauroman">♥ Support</a>
+    <a class="support-pill" href="https://ko-fi.com/nauroman">♥ Support</a>
   </div>
 </header>
 
-<main>
-  <div class="wrap hero">
-    <img class="icon" src="images/icon-256.png" alt="ArrowKeys icon">
-    <h1>Move the cursor without leaving the letters</h1>
-    <p class="lead">Hold <kbd>Caps Lock</kbd> and press <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>I</kbd> to move like arrow keys. Free, works offline, for Mac and Windows.</p>
-    <div class="buttons">
-      <a class="btn primary" href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg">Download for Mac</a>
-      <a class="btn" href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1">Get it for Windows</a>
-      <a class="btn" href="https://github.com/nauroman/arrowkeys">Source on GitHub</a>
+<main id="main">
+  <div class="band hero on-carbon">
+    <div class="wrap">
+      <div class="hero-copy">
+        <h1>Move the cursor without leaving the letters</h1>
+        <p class="lead">Hold <strong>Caps Lock</strong> and press <strong>J K L I</strong>. They work as arrow keys in every app, so your hands stay where you type.</p>
+        <div class="choices" id="hero-install">
+          <div class="choice" data-os="windows">
+            <span>Windows</span>
+            <div class="row"><a class="btn" href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1">Get it from Microsoft Store</a></div>
+          </div>
+          <div class="choice" data-os="mac">
+            <span>Mac</span>
+            <div class="row">
+              <!-- MAC_APP_STORE: once Apple approves the app, replace this span with
+                   <a class="btn" href="https://apps.apple.com/app/id6838540656">Download on the Mac App Store</a> -->
+              <span class="btn soon" aria-label="Mac App Store, coming soon">Mac App Store <small>coming soon</small></span>
+              <a class="btn" href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg">Download for Mac</a>
+            </div>
+          </div>
+        </div>
+        <p class="proof">Free and open source. No account. The Mac download is signed and notarized by Apple. <a href="#install" class="other-link">Other ways to install</a></p>
+      </div>
+
+      <div class="device" aria-label="Try ArrowKeys">
+        <div class="device-bar"><span>Try it here</span><span>Option or Alt works too</span></div>
+        <div class="doc idle" id="doc" tabindex="0" role="textbox" aria-readonly="true" aria-multiline="true"
+             aria-label="Sample text. Hold Option or Alt and press J, K, L or I to move the cursor."></div>
+        <div class="device-foot">
+          <div class="pad" id="pad" aria-label="ArrowKeys keys">
+            <span class="keycap caps" id="caps-key" aria-hidden="true">caps lock</span>
+            <button type="button" class="keycap" data-k="i" style="grid-column:3;grid-row:1" aria-label="I, up">I<small>↑</small></button>
+            <button type="button" class="keycap" data-k="j" style="grid-column:2;grid-row:2" aria-label="J, left">J<small>←</small></button>
+            <button type="button" class="keycap" data-k="k" style="grid-column:3;grid-row:2" aria-label="K, down">K<small>↓</small></button>
+            <button type="button" class="keycap" data-k="l" style="grid-column:4;grid-row:2" aria-label="L, right">L<small>→</small></button>
+          </div>
+          <div class="readout" aria-live="polite">
+            <b id="hint-title">Caps Lock + J moves left</b>
+            <span id="hint-body">No app yet? Hold <span class="kbd">Option</span> on a Mac or <span class="kbd">Alt</span> on Windows and press J, K, L or I, or tap the keys.</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <p class="note">Mac: macOS 13 or newer, Apple silicon and Intel, about 1 MB, signed and notarized by Apple. Windows: Microsoft Store or <a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe">installer</a>.</p>
-    <div class="demo"><img src="images/demo.gif" width="960" height="340" alt="Animation: holding Caps Lock and pressing I, J, L and K moves the cursor up, left, right and down through two lines of text"></div>
   </div>
 
-  <section id="why">
+  <section id="keys">
     <div class="wrap">
-      <h2>Why it helps</h2>
-      <p class="sub">When you type, your fingers rest on the letters. The arrow keys sit in the far corner, and on many laptops they are tiny. Every typo fix means reaching over, looking down and finding your place again. ArrowKeys puts the arrows under your right hand.</p>
-      <div class="cards">
-        <div class="card"><h3>Hands stay in place</h3><p>Caps Lock is right under your left little finger. Hold it like Shift, move with your right hand, let go and keep typing.</p></div>
-        <div class="card"><h3>Works where you type</h3><p>Emails, documents, chats, notes, browsers and code editors. ArrowKeys sends ordinary arrow keys, which almost every app understands.</p></div>
-        <div class="card"><h3>Private</h3><p>No account, no internet, no data collection. It only reacts to its eight shortcuts and leaves all other typing alone.</p></div>
+      <div class="head">
+        <h2>Eight keys you already rest on</h2>
+        <p>Hold Caps Lock and press one of them. Holding a key repeats it, like a real arrow key. Let go and you type as usual.</p>
+      </div>
+      <div class="keys">
+        <div class="cell"><span class="cap arrow" data-arrow="←">J</span><h3>Left</h3><p>One letter</p></div>
+        <div class="cell"><span class="cap arrow" data-arrow="→">L</span><h3>Right</h3><p>One letter</p></div>
+        <div class="cell"><span class="cap arrow" data-arrow="↑">I</span><h3>Up</h3><p>One line</p></div>
+        <div class="cell"><span class="cap arrow" data-arrow="↓">K</span><h3>Down</h3><p>One line</p></div>
+        <div class="cell"><span class="cap">H</span><h3>Back a word</h3><p>Option ← on Mac, Ctrl ← on Windows</p></div>
+        <div class="cell"><span class="cap">;</span><h3>Forward a word</h3><p>Option → on Mac, Ctrl → on Windows</p></div>
+        <div class="cell"><span class="cap">U</span><h3>Line start</h3><p>Command ← on Mac, Home on Windows</p></div>
+        <div class="cell"><span class="cap">O</span><h3>Line end</h3><p>Command → on Mac, End on Windows</p></div>
+      </div>
+      <p class="footnote">While ArrowKeys runs, Caps Lock no longer switches to capitals. Use Shift for capitals; quit ArrowKeys and Caps Lock works as before. On a Mac the shortcuts follow key positions, so they stay put with any keyboard layout.</p>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <div class="head">
+        <h2>Install from your app store</h2>
+        <p>The store keeps ArrowKeys updated, and Apple or Microsoft reviews every version before it reaches you.</p>
+      </div>
+      <div class="stores" id="stores">
+        <div class="store" data-os="windows">
+          <h3>Windows</h3>
+          <dl>
+            <dt>Store</dt><dd>Microsoft Store</dd>
+            <dt>Needs</dt><dd>Windows 10 version 2004 or newer</dd>
+            <dt>Starts</dt><dd>When you sign in</dd>
+          </dl>
+          <div class="row"><a class="btn" href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1">Get it from Microsoft Store</a></div>
+        </div>
+        <div class="store" data-os="mac">
+          <h3>Mac <em>Mac App Store version in review</em></h3>
+          <dl>
+            <dt>Store</dt><dd>Mac App Store, coming soon</dd>
+            <dt>Now</dt><dd>Signed download, checked by Apple</dd>
+            <dt>Needs</dt><dd>macOS 13 or newer, Apple silicon or Intel</dd>
+          </dl>
+          <div class="row">
+            <span class="btn soon">Mac App Store <small>coming soon</small></span>
+            <a class="btn" href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg">Download for Mac</a>
+          </div>
+        </div>
+      </div>
+      <div class="backup" id="other-ways">
+        <h3>Other ways to install</h3>
+        <div class="backup-list">
+          <div><b><a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg">Mac installer</a></b><p>For macOS 13 or newer, including Macs the store version doesn't support. About 1 MB.</p></div>
+          <div><b><a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe">Windows installer</a></b><p>For computers without the Microsoft Store. It has no publisher signature, so Windows may say "Windows protected your PC": choose More info, then Run anyway.</p></div>
+          <div><b><a href="https://github.com/nauroman/arrowkeys#more-details">From source</a></b><p>Run the AutoHotkey script on Windows, or check a release against its GitHub build record.</p></div>
+        </div>
       </div>
     </div>
   </section>
 
-  <section id="shortcuts">
+  <section id="setup">
     <div class="wrap">
-      <h2>The shortcuts</h2>
-      <p class="sub">Hold <kbd>Caps Lock</kbd> and press one of these keys. Holding a key repeats it, just like a real arrow key. Use <kbd>Shift</kbd> for capital letters while ArrowKeys runs.</p>
-      <table>
-        <tr><th>Key</th><th>Moves the cursor</th><th>Same as</th></tr>
-        <tr><td><kbd>J</kbd></td><td>One letter left</td><td>←</td></tr>
-        <tr><td><kbd>L</kbd></td><td>One letter right</td><td>→</td></tr>
-        <tr><td><kbd>I</kbd></td><td>One line up</td><td>↑</td></tr>
-        <tr><td><kbd>K</kbd></td><td>One line down</td><td>↓</td></tr>
-        <tr><td><kbd>H</kbd></td><td>Back one word</td><td>Option + ← on Mac, Ctrl + ← on Windows</td></tr>
-        <tr><td><kbd>;</kbd></td><td>Forward one word</td><td>Option + → on Mac, Ctrl + → on Windows</td></tr>
-        <tr><td><kbd>U</kbd></td><td>Start of the line</td><td>Command + ← on Mac, Home on Windows</td></tr>
-        <tr><td><kbd>O</kbd></td><td>End of the line</td><td>Command + → on Mac, End on Windows</td></tr>
-      </table>
-      <img class="keyboard" src="images/keyboard.png" width="1946" height="551" alt="Keyboard with Caps Lock and the J, K, L, I keys highlighted">
-    </div>
-  </section>
-
-  <section id="mac">
-    <div class="wrap">
-      <h2>Set up on a Mac</h2>
-      <p class="sub">It takes about a minute. You do it once, and updates keep the permission.</p>
+      <div class="head">
+        <h2>Setting up the Mac download</h2>
+        <p>About a minute, once. Updates keep the permission.</p>
+      </div>
       <div class="steps">
         <div class="step">
-          <div><span class="num">1</span><h3>Install</h3><p><a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg">Download the installer</a>, double-click it, choose <b>Continue</b> and <b>Install</b>, and enter your Mac password. ArrowKeys starts by itself.</p></div>
-          <figure><img src="images/mac-installer.png" width="732" height="560" alt="The ArrowKeys installer welcome screen"></figure>
+          <div class="step-text"><span class="no">Step 1</span><h3>Open the installer</h3><p>Double-click the package, choose Continue and Install, and enter your Mac password. ArrowKeys starts by itself.</p></div>
         </div>
         <div class="step">
-          <div><span class="num">2</span><h3>Allow cursor movement</h3><p>macOS asks you to approve any app that presses keys for you. Choose <b>Open Accessibility Settings</b> and turn on <b>ArrowKeys</b>. This window closes by itself once access is on.</p></div>
-          <figure><img src="images/mac-access-guide.png" width="410" height="482" alt="ArrowKeys window asking to allow cursor movement, with an Open Accessibility Settings button"></figure>
+          <div class="step-text"><span class="no">Step 2</span><h3>Allow cursor movement</h3><p>Choose Open Accessibility Settings and turn on ArrowKeys. This window closes by itself once access is on.</p></div>
         </div>
         <div class="step">
-          <div><span class="num">3</span><h3>Start moving</h3><p>ArrowKeys lives in the menu bar, with no window or Dock icon. Its four-arrow menu shows <b>Navigation active</b> when everything is ready. Open any text, hold <kbd>Caps Lock</kbd> and press <kbd>J</kbd>.</p><p>It starts when you log in and works with every keyboard, including ones you connect later.</p></div>
-          <figure><img src="images/mac-menu.png" width="383" height="256" alt="ArrowKeys menu: Navigation active, Accessibility Settings, Open at Login, Quit ArrowKeys"></figure>
+          <div class="step-text"><span class="no">Step 3</span><h3>Start moving</h3><p>When the menu bar icon says Navigation active, hold Caps Lock and press J in any text.</p></div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="windows">
+  <section id="questions">
     <div class="wrap">
-      <h2>Set up on Windows</h2>
-      <p class="sub">The easiest way is <a href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1">Arrow Keys in the Microsoft Store</a>. Install it, open it once, and it starts with Windows from then on.</p>
-      <div class="cards">
-        <div class="card"><h3>Microsoft Store</h3><p>Installs and updates automatically. Open the app once to turn on navigation and startup at sign-in.</p></div>
-        <div class="card"><h3>Installer</h3><p><a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe">ArrowKeys-Windows-Setup.exe</a> has no publisher signature, so Windows may say <b>Windows protected your PC</b>. Choose <b>More info</b>, then <b>Run anyway</b>.</p></div>
-        <div class="card"><h3>Remove it</h3><p>Uninstall <b>ArrowKeys</b> in <b>Settings → Apps → Installed apps</b>. Caps Lock goes back to normal.</p></div>
+      <div class="head"><h2>Questions</h2></div>
+      <div class="faq">
+        <details><summary>Is it safe to give ArrowKeys Accessibility access?</summary>
+          <p>macOS asks for this permission for any app that presses keys for you. ArrowKeys only reacts to its eight shortcuts. It does not record what you type, collect data or connect to the internet. The source code is public, and every release is built on GitHub from that code, tested and scanned for viruses. <a href="https://github.com/nauroman/arrowkeys/blob/main/PRIVACY.md">Privacy policy</a></p></details>
+        <details><summary>Can I still type capital letters?</summary>
+          <p>Yes, with Shift. Only the Caps Lock toggle is off while ArrowKeys runs. Quit ArrowKeys and Caps Lock works as before.</p></details>
+        <details><summary>Does it work with my keyboard?</summary>
+          <p>Yes, with the built-in keyboard and any external one, including keyboards you plug in or pair while ArrowKeys is running.</p></details>
+        <details><summary>The cursor doesn't move. What should I check?</summary>
+          <p>On a Mac, click the four-arrow icon in the menu bar. If it doesn't say Navigation active, choose the item at the top and follow the steps. On Windows, some games and windows running as administrator ignore simulated keys.</p></details>
+        <details><summary>How do I remove it?</summary>
+          <p>On a Mac, choose Quit ArrowKeys in its menu and move the app from Applications to the Trash. On Windows, uninstall it in Settings, Apps, Installed apps. Caps Lock goes back to how it was.</p></details>
       </div>
     </div>
   </section>
 
-  <section id="privacy">
+  <section class="support" id="support">
     <div class="wrap">
-      <h2>Privacy and safety</h2>
-      <p class="sub">ArrowKeys works offline. It does not record what you type, collect personal data, show ads or connect to the internet. The <a href="https://github.com/nauroman/arrowkeys">source code</a> is public, and every release is built on GitHub from that code, tested and scanned for viruses. The Mac version is signed by the developer and notarized by Apple. <a href="https://github.com/nauroman/arrowkeys/blob/main/PRIVACY.md">Read the privacy policy</a></p>
-      <div class="cards">
-        <div class="card"><h3>Need help?</h3><p>See <a href="https://github.com/nauroman/arrowkeys#questions">common questions</a> or <a href="https://github.com/nauroman/arrowkeys/issues">ask on GitHub</a>.</p></div>
-        <div class="card"><h3>Uninstall on a Mac</h3><p>Choose <b>Quit ArrowKeys</b> in its menu, then move it from <b>Applications</b> to the Trash. Caps Lock goes back to how it was.</p></div>
+      <div>
+        <h2>Support ArrowKeys</h2>
+        <p>ArrowKeys is free. If it saves you time every day, a tip on Ko-fi pays for the Apple developer membership that lets the Mac version open without warnings, and for time to keep it updated.</p>
+      </div>
+      <div class="row">
+        <a class="btn orange" href="https://ko-fi.com/nauroman">♥ Support on Ko-fi</a>
+        <a class="btn line" href="https://github.com/nauroman/arrowkeys">Star on GitHub</a>
       </div>
     </div>
   </section>
 
-  <section id="support" class="support">
+  <div class="band closing on-carbon">
     <div class="wrap">
-      <h2>Support ArrowKeys</h2>
-      <p class="sub">ArrowKeys is free and open source. If it saves you time every day, you can leave a tip on Ko-fi. It pays for the Apple developer membership that lets the Mac version open without warnings, and for time to keep ArrowKeys updated.</p>
-      <div class="buttons">
-        <a class="btn primary" href="https://ko-fi.com/nauroman">♥ Support on Ko-fi</a>
-        <a class="btn" href="https://github.com/nauroman/arrowkeys">★ Star on GitHub</a>
-        <a class="btn" href="https://github.com/nauroman/arrowkeys/issues">Suggest an idea</a>
+      <h2>Keep your hands on the letters</h2>
+      <div class="choices" id="closing-install">
+        <div class="choice" data-os="windows">
+          <span>Windows</span>
+          <div class="row"><a class="btn" href="https://apps.microsoft.com/detail/9NTNKTVCJ1J1">Get it from Microsoft Store</a></div>
+        </div>
+        <div class="choice" data-os="mac">
+          <span>Mac</span>
+          <div class="row">
+            <span class="btn soon">Mac App Store <small>coming soon</small></span>
+            <a class="btn" href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg">Download for Mac</a>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
 </main>
 
-<footer>
+<footer class="band">
   <div class="wrap">
-    <span>ArrowKeys · <a href="https://github.com/nauroman/arrowkeys/blob/main/LICENSE">MIT license</a></span>
-    <span><a href="https://github.com/nauroman/arrowkeys">GitHub</a> · <a href="https://github.com/nauroman/arrowkeys/releases">Releases</a> · <a href="https://github.com/nauroman/arrowkeys/blob/main/PRIVACY.md">Privacy</a></span>
+    <span>ArrowKeys. Free and open source, <a href="https://github.com/nauroman/arrowkeys/blob/main/LICENSE">MIT license</a>.</span>
+    <nav aria-label="Footer">
+      <a href="https://github.com/nauroman/arrowkeys">Source</a>
+      <a href="https://github.com/nauroman/arrowkeys/releases">Releases</a>
+      <a href="https://github.com/nauroman/arrowkeys/blob/main/PRIVACY.md">Privacy</a>
+      <a href="https://github.com/nauroman/arrowkeys/issues">Help</a>
+    </nav>
   </div>
 </footer>
+
+<script>
+(() => {
+  // Put the visitor's own platform first wherever the page offers both.
+  const ua = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || "";
+  const os = /win/i.test(ua) ? "windows" : /mac/i.test(ua) ? "mac" : "";
+  if (os) {
+    for (const id of ["hero-install", "stores", "closing-install"]) {
+      const box = document.getElementById(id);
+      const mine = box && box.querySelector(`[data-os="${os}"]`);
+      if (!mine) continue;
+      mine.classList.add("mine");
+      box.prepend(mine);
+    }
+  }
+
+  // The live demo: a small text field whose caret moves the way ArrowKeys moves it.
+  const lines = [
+    "I wrote this sentence quickly and found a typo.",
+    "ArrowKeys lets me fix it without leaving the letters.",
+    "Hold Caps Lock, press J or L, and keep typing."
+  ];
+  const doc = document.getElementById("doc");
+  const pad = document.getElementById("pad");
+  const caps = document.getElementById("caps-key");
+  const hintTitle = document.getElementById("hint-title");
+  const hintBody = document.getElementById("hint-body");
+  const actions = {
+    j: ["left", "Caps Lock + J moves left"], l: ["right", "Caps Lock + L moves right"],
+    i: ["up", "Caps Lock + I moves up"], k: ["down", "Caps Lock + K moves down"],
+    h: ["wordLeft", "Caps Lock + H jumps back a word"], ";": ["wordRight", "Caps Lock + ; jumps forward a word"],
+    u: ["home", "Caps Lock + U goes to the line start"], o: ["end", "Caps Lock + O goes to the line end"]
+  };
+  let line = 1, col = lines[1].length, goal = col;
+  const isWord = c => /[\p{L}\p{N}]/u.test(c);
+  const move = {
+    left() { if (col > 0) col--; else if (line > 0) { line--; col = lines[line].length; } goal = col; },
+    right() { if (col < lines[line].length) col++; else if (line < lines.length - 1) { line++; col = 0; } goal = col; },
+    up() { if (line > 0) { line--; col = Math.min(goal, lines[line].length); } },
+    down() { if (line < lines.length - 1) { line++; col = Math.min(goal, lines[line].length); } },
+    wordLeft() { const s = lines[line]; let i = col; while (i > 0 && !isWord(s[i - 1])) i--; while (i > 0 && isWord(s[i - 1])) i--; col = i; goal = col; },
+    wordRight() { const s = lines[line]; let i = col; while (i < s.length && !isWord(s[i])) i++; while (i < s.length && isWord(s[i])) i++; col = i; goal = col; },
+    home() { col = 0; goal = col; },
+    end() { col = lines[line].length; goal = col; }
+  };
+  function render() {
+    doc.replaceChildren(...lines.map((text, n) => {
+      const row = document.createElement("div");
+      row.className = "ln";
+      if (n === line) {
+        const caret = document.createElement("span");
+        caret.className = "caret";
+        row.append(text.slice(0, col), caret, text.slice(col));
+      } else row.textContent = text;
+      return row;
+    }));
+  }
+  function flash(k) {
+    const b = pad.querySelector(`[data-k="${CSS.escape(k)}"]`);
+    caps.classList.add("on");
+    if (b) { b.classList.add("on"); setTimeout(() => b.classList.remove("on"), 170); }
+    clearTimeout(flash.t); flash.t = setTimeout(() => caps.classList.remove("on"), 650);
+  }
+  function act(k) {
+    const a = actions[k];
+    if (!a) return;
+    move[a[0]](); render(); flash(k); hintTitle.textContent = a[1];
+  }
+  render();
+
+  // Option or Alt with a letter works without the app; with ArrowKeys running, the real arrow keys arrive.
+  const byCode = { KeyJ: "j", KeyK: "k", KeyL: "l", KeyI: "i", KeyH: "h", Semicolon: ";", KeyU: "u", KeyO: "o" };
+  function fromEvent(e) {
+    if (e.altKey && !e.ctrlKey && !e.metaKey && byCode[e.code]) return byCode[e.code];
+    if (e.key === "ArrowLeft") return e.metaKey ? "u" : (e.altKey || e.ctrlKey) ? "h" : "j";
+    if (e.key === "ArrowRight") return e.metaKey ? "o" : (e.altKey || e.ctrlKey) ? ";" : "l";
+    if (e.key === "ArrowUp") return "i";
+    if (e.key === "ArrowDown") return "k";
+    if (e.key === "Home") return "u";
+    if (e.key === "End") return "o";
+    return null;
+  }
+  document.addEventListener("keydown", e => {
+    const t = e.target;
+    if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+    const k = fromEvent(e);
+    if (!k) return;
+    // Plain navigation keys drive the demo only while it has focus, so the page still scrolls normally.
+    const plain = /^Arrow|^Home$|^End$/.test(e.key);
+    if (plain && document.activeElement !== doc) return;
+    e.preventDefault();
+    stopTour(); act(k);
+  });
+  pad.addEventListener("click", e => {
+    const b = e.target.closest("button[data-k]");
+    if (!b) return;
+    stopTour(); act(b.dataset.k);
+  });
+
+  // A short tour plays until the visitor takes over; with reduced motion the field stays still.
+  const tour = ["i", "j", "j", "j", "j", "l", "l", "k", "j", "j", "l"];
+  let step = 0, timer = null;
+  function stopTour() {
+    if (!timer) return;
+    clearInterval(timer); timer = null; doc.classList.remove("idle");
+    hintBody.textContent = "Your turn. Keep holding Option or Alt and press the keys, or tap them here.";
+  }
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    timer = setInterval(() => {
+      if (document.hidden) return;
+      act(tour[step]);
+      step = (step + 1) % tour.length;
+      if (step === 0) { line = 1; col = lines[1].length; goal = col; render(); }
+    }, 950);
+  }
+})();
+</script>
 </body>
 </html>

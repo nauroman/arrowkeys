@@ -1,10 +1,10 @@
-# <img src="assets/ArrowKeys.png" width="48" alt=""> ArrowKeys
+# <img src="docs/images/icon-256.webp" width="48" alt=""> ArrowKeys
 
 **Move the text cursor without taking your hands off the letters.** Hold **Caps Lock** and press **J K L I** to move left, down, right and up. ArrowKeys is free, works offline, and runs on Mac and Windows.
 
 **Website:** [nauroman.github.io/arrowkeys](https://nauroman.github.io/arrowkeys/)
 
-<img src="docs/images/demo.gif" width="720" alt="Animation: holding Caps Lock and pressing I, J, L and K moves the cursor up, left, right and down through two lines of text">
+<img src="docs/images/demo.webp" width="720" alt="Animation: holding Caps Lock and pressing I, J, L and K moves the cursor up, left, right and down through two lines of text">
 
 [![Installer builds, tests and ClamAV scan](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/nauroman/arrowkeys/actions/workflows/build.yml)
 
@@ -37,27 +37,38 @@ Hold **Caps Lock** and press:
 
 Holding a key repeats it, just like a real arrow key. The highlighted keys show where they are:
 
-![Keyboard with Caps Lock and the J, K, L, I keys highlighted](keyboard.png)
+![Keyboard with Caps Lock and the J, K, L, I keys highlighted](docs/images/keyboard.webp)
 
 **What happens to Caps Lock?** While ArrowKeys is running, Caps Lock no longer switches to capital letters. Use **Shift** for capitals as usual. Quit ArrowKeys and Caps Lock works as before.
 
-## Install on a Mac
+## Install
 
-ArrowKeys needs macOS 13 or newer and works on Apple silicon and Intel Macs. The download is about 1 MB.
+The usual way is your computer's app store. It keeps ArrowKeys updated, and Apple or Microsoft reviews every version first.
+
+| | From the store | Other way |
+| --- | --- | --- |
+| **Windows** | [Arrow Keys in the Microsoft Store](https://apps.microsoft.com/detail/9NTNKTVCJ1J1) | [ArrowKeys-Windows-Setup.exe](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe), for computers without the Microsoft Store |
+| **Mac** | Coming soon: Apple is reviewing ArrowKeys for the Mac App Store | [ArrowKeys-macOS.pkg](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg), signed and notarized, for macOS 13 or newer |
+
+Until the Mac App Store version is out, the Mac download is the way to install on a Mac.
+
+## Set up the Mac download
+
+The Mac download needs macOS 13 or newer and works on Apple silicon and Intel Macs. It is about 1 MB.
 
 **1. Download and open the installer.** Download [**ArrowKeys-macOS.pkg**](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-macOS.pkg) and double-click it. Choose **Continue**, then **Install**, and enter your Mac password when asked. The package is signed by the developer and checked by Apple, so it opens without warnings.
 
-<img src="docs/images/mac-installer.png" width="560" alt="The ArrowKeys installer welcome screen">
+<img src="docs/images/mac-installer.webp" width="560" alt="The ArrowKeys installer welcome screen">
 
 **2. Allow ArrowKeys to move the cursor.** ArrowKeys starts by itself after installation. For it to move the cursor in other apps, macOS needs your permission in **Accessibility** settings. ArrowKeys shows this window:
 
-<img src="docs/images/mac-access-guide.png" width="300" alt="ArrowKeys window: Allow ArrowKeys to move the cursor, with Open Accessibility Settings and Later buttons">
+<img src="docs/images/mac-access-guide.webp" width="300" alt="ArrowKeys window: Allow ArrowKeys to move the cursor, with Open Accessibility Settings and Later buttons">
 
 Choose **Open Accessibility Settings** and turn on the switch next to **ArrowKeys**. The ArrowKeys window closes by itself as soon as access is on.
 
 **3. Check the menu bar.** ArrowKeys lives in the menu bar at the top of the screen. It has no window or Dock icon. Click its four-arrow icon to see its menu:
 
-<img src="docs/images/mac-menu.png" width="300" alt="ArrowKeys menu: Navigation active, Accessibility Settings…, Open at Login (checked), Quit ArrowKeys">
+<img src="docs/images/mac-menu.webp" width="300" alt="ArrowKeys menu: Navigation active, Accessibility Settings…, Open at Login (checked), Quit ArrowKeys">
 
 **Navigation active** means everything is ready. Open any text, hold **Caps Lock** and press **J**. The cursor moves one letter left.
 
@@ -68,11 +79,11 @@ ArrowKeys starts automatically when you log in. To change that, click **Open at 
 - **Update:** download the new package and install it over the old one. Updates keep the Accessibility permission. Updating from version 1.1.4 or older is the one exception: turn ArrowKeys on in Accessibility settings once more.
 - **Remove:** choose **Quit ArrowKeys** in its menu, then move **ArrowKeys** from the **Applications** folder to the Trash. Caps Lock goes back to how it was.
 
-## Install on Windows
+## Set up on Windows
 
-The easiest way is **[Arrow Keys in the Microsoft Store](https://apps.microsoft.com/detail/9NTNKTVCJ1J1)**. Install it and open it once. It starts automatically when you sign in.
+Install **[Arrow Keys from the Microsoft Store](https://apps.microsoft.com/detail/9NTNKTVCJ1J1)** and open it once. It starts automatically when you sign in.
 
-You can also download [**ArrowKeys-Windows-Setup.exe**](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe) and run it. This installer has no publisher signature, so Windows may show **Windows protected your PC**. Choose **More info**, then **Run anyway**. Or use the Microsoft Store version, which does not show this warning.
+On a computer without the Microsoft Store, download [**ArrowKeys-Windows-Setup.exe**](https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe) and run it. This installer has no publisher signature, so Windows may show **Windows protected your PC**. Choose **More info**, then **Run anyway**.
 
 After installation, open any text, hold **Caps Lock** and press **J**. To remove ArrowKeys, uninstall it in **Settings → Apps → Installed apps**.
 
