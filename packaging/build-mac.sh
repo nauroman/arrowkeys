@@ -31,7 +31,7 @@ pkgbuild --analyze --root "$stage/payload" "$stage/component.plist"
 plutil -replace 0.BundleIsRelocatable -bool NO "$stage/component.plist"
 pkgbuild --root "$stage/payload" --component-plist "$stage/component.plist" --scripts "$stage/scripts" \
   --install-location /Applications \
-  --identifier com.nauroman.arrowkeys.native --version 1.2.0 "$stage/ArrowKeysApp.pkg"
+  --identifier com.nauroman.arrowkeys.native --version 1.2.1 "$stage/ArrowKeysApp.pkg"
 cp -R "$repo/packaging/mac-resources" "$stage/resources"
 sips -j "$repo/packaging/installer-background.js" "$repo/assets/ArrowKeys.png" --out "$stage/resources/ArrowKeys.png" >/dev/null
 productbuild --distribution "$repo/packaging/macos-distribution.xml" --resources "$stage/resources" \

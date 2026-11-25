@@ -8,7 +8,8 @@ Use the four values assigned to this app under **Partner Center → Product iden
 ```
 
 The unsigned submission package and 300 × 300 listing logo are written to
-`dist/store`. CI uses a separate identity and signs only its disposable test build.
+`dist/store`. Without a Windows PC, run the **Build the Microsoft Store package** workflow on GitHub
+with the same four values; it uploads `dist/store` as the `store-submission` artifact. CI uses a separate identity and signs only its disposable test build.
 Tag a Windows-only release as `windows-vX.Y.Z` to publish the verified standalone Windows installer on GitHub.
 
 ## Store description
@@ -31,6 +32,6 @@ Arrow Keys requires runFullTrust to register a desktop keyboard hook and send th
 
 Product support: https://github.com/nauroman/arrowkeys/issues
 
-Product website: https://github.com/nauroman/arrowkeys
+Product website: https://nauroman.github.io/arrowkeys/
 
 Privacy policy: https://github.com/nauroman/arrowkeys/blob/main/PRIVACY.md

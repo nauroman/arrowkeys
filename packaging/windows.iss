@@ -1,7 +1,7 @@
 [Setup]
 AppId=nauroman.ArrowKeys
 AppName=ArrowKeys
-AppVersion=1.1.1
+AppVersion=1.1.2
 AppPublisher=Roman Naumov
 AppPublisherURL=https://github.com/nauroman/arrowkeys
 AppUpdatesURL=https://github.com/nauroman/arrowkeys/releases

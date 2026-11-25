@@ -1,0 +1,42 @@
+name: Build the Microsoft Store package
+# Run by hand before a Partner Center submission. The identity values come from
+# Partner Center → Product identity; they are public and end up in the package manifest.
+on:
+  workflow_dispatch:
+    inputs:
+      identity_name:
+        description: Package/Identity/Name
+        required: true
+      publisher:
+        description: Package/Identity/Publisher (CN=…)
+        required: true
+      publisher_display_name:
+        description: Publisher display name
+        required: true
+      version:
+        description: Four-part Store version ending in .0, higher than the last submission
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build the unsigned submission package
+        shell: pwsh
+        env:
+          IDENTITY_NAME: ${{ inputs.identity_name }}
+          PUBLISHER: ${{ inputs.publisher }}
+          PUBLISHER_DISPLAY_NAME: ${{ inputs.publisher_display_name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          python -m pip install Pillow==12.2.0
+          ./packaging/build-store.ps1 -IdentityName $env:IDENTITY_NAME -Publisher $env:PUBLISHER `
+            -PublisherDisplayName $env:PUBLISHER_DISPLAY_NAME -DisplayName 'Arrow Keys' -Version $env:VERSION
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: store-submission
+          path: dist/store/
