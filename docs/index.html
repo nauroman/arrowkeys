@@ -37,9 +37,12 @@
   nav { margin-left: auto; display: flex; gap: 18px; font-size: 15px; }
   nav a { color: var(--muted); text-decoration: none; }
   nav a:hover { color: var(--text); }
-  @media (max-width: 720px) { nav { display: none; } }
+  .support-link { margin-left: 18px; padding: 7px 15px; border-radius: 999px; background: var(--accent); color: var(--accent-text);
+    font-weight: 600; font-size: 15px; text-decoration: none; white-space: nowrap; }
+  .support-link:hover { filter: brightness(1.08); }
+  @media (max-width: 720px) { nav { display: none; } .support-link { margin-left: auto; } }
 
-  .hero { padding: 64px 0 32px; text-align: center; }
+  .hero { padding: 64px 20px 32px; text-align: center; }
   .hero img.icon { width: 112px; height: 112px; }
   h1 { font-size: clamp(34px, 6vw, 56px); line-height: 1.1; margin: 18px 0 14px; letter-spacing: -0.02em; }
   .lead { font-size: clamp(18px, 2.4vw, 22px); color: var(--muted); max-width: 680px; margin: 0 auto 28px; }
@@ -96,8 +99,8 @@
       <a href="#mac">Mac setup</a>
       <a href="#windows">Windows</a>
       <a href="#privacy">Privacy</a>
-      <a href="#support">Support</a>
     </nav>
+    <a class="support-link" href="https://ko-fi.com/nauroman">♥ Support</a>
   </div>
 </header>
 
@@ -112,7 +115,7 @@
       <a class="btn" href="https://github.com/nauroman/arrowkeys">Source on GitHub</a>
     </div>
     <p class="note">Mac: macOS 13 or newer, Apple silicon and Intel, about 1 MB, signed and notarized by Apple. Windows: Microsoft Store or <a href="https://github.com/nauroman/arrowkeys/releases/latest/download/ArrowKeys-Windows-Setup.exe">installer</a>.</p>
-    <div class="demo"><img src="images/demo.gif" width="960" height="340" alt="Animation: holding Caps Lock and pressing I, H, J, L, U, semicolon, O and K moves the cursor through two lines of text"></div>
+    <div class="demo"><img src="images/demo.gif" width="960" height="340" alt="Animation: holding Caps Lock and pressing I, J, L and K moves the cursor up, left, right and down through two lines of text"></div>
   </div>
 
   <section id="why">
@@ -193,9 +196,9 @@
   <section id="support" class="support">
     <div class="wrap">
       <h2>Support ArrowKeys</h2>
-      <p class="sub">ArrowKeys is free and open source. If it saves you time every day, you can help keep it going.</p>
+      <p class="sub">ArrowKeys is free and open source. If it saves you time every day, you can leave a tip on Ko-fi. It pays for the Apple developer membership that lets the Mac version open without warnings, and for time to keep ArrowKeys updated.</p>
       <div class="buttons">
-        <!-- DONATE_BUTTON: add the donation link here once the account exists. -->
+        <a class="btn primary" href="https://ko-fi.com/nauroman">♥ Support on Ko-fi</a>
         <a class="btn" href="https://github.com/nauroman/arrowkeys">★ Star on GitHub</a>
         <a class="btn" href="https://github.com/nauroman/arrowkeys/issues">Suggest an idea</a>
       </div>
