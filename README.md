@@ -127,6 +127,10 @@ gh attestation verify ArrowKeys-macOS.pkg --repo nauroman/arrowkeys
 gh attestation verify ArrowKeys-Windows-Setup.exe --repo nauroman/arrowkeys
 ```
 
+## Support ArrowKeys
+
+ArrowKeys is free. If it saves you time, you can [leave a tip on Ko-fi](https://ko-fi.com/nauroman). It pays for the Apple developer membership and for time to keep ArrowKeys updated.
+
 ## Contributing
 
 Suggestions and fixes are welcome in [Issues](https://github.com/nauroman/arrowkeys/issues). For a keyboard problem, include your system version, keyboard layout, the app where it happens, any other key remapping tools, and the order in which you press and release the keys. Please don't include private text.
