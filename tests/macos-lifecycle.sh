@@ -14,6 +14,8 @@ snapshot_keyboard() {
 snapshot_keyboard > "$stage/keyboard-before"
 pkgutil --expand "$1" "$stage/expanded"
 welcome=$(find "$stage/expanded/Resources" -name 'welcome.rtf' -print -quit)
+# The website comes first, before the GitHub links.
+grep -Fq 'HYPERLINK "https://nauroman.github.io/arrowkeys/"' "$welcome"
 grep -Fq 'HYPERLINK "https://github.com/nauroman/arrowkeys"' "$welcome"
 grep -Fq 'HYPERLINK "https://github.com/nauroman/arrowkeys/releases/latest"' "$welcome"
 # A relocatable bundle would update another ArrowKeys copy instead of /Applications.
