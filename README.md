@@ -47,6 +47,8 @@ This helps anyone who writes a lot: emails, documents, chats or code. People who
 
 ## Shortcuts
 
+<img src="docs/images/keycaps.png" width="402" alt="Keycaps: Caps Lock on the left, and I, J, K and L on the right with orange arrows: I up, J left, K down, L right">
+
 Hold **Caps Lock** and press:
 
 | Key | Moves the cursor | Like pressing |
@@ -60,9 +62,7 @@ Hold **Caps Lock** and press:
 | **U** | To the start of the line | Command + ← on Mac, Home on Windows |
 | **O** | To the end of the line | Command + → on Mac, End on Windows |
 
-Holding a key repeats it, just like a real arrow key. The highlighted keys show where they are:
-
-![Keyboard with Caps Lock and the J, K, L, I keys highlighted](docs/images/keyboard.webp)
+Holding a key repeats it, just like a real arrow key.
 
 **What happens to Caps Lock?** While ArrowKeys is running, Caps Lock no longer switches to capital letters. Use **Shift** for capitals as usual. Quit ArrowKeys and Caps Lock works as before.
 

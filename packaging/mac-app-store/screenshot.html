@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- The Mac App Store product page screenshot, 1440 × 900. Rebuild ArrowKeys-Mac-App-Store.png from it with
+     python3 tools/demo/render-keycaps.py. The keys are the website's demo keypad (docs/images/keycaps.png);
+     setup-window.png is the app's first-run window. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 1440px; height: 900px; overflow: hidden; background: #17161c; }
+  body { position: relative; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; color: #f6f8f7; }
+  .brand { position: absolute; left: 76px; top: 56px; font-size: 32px; font-weight: 600; letter-spacing: -0.01em; color: #f07a33; }
+  h1 { position: absolute; left: 72px; top: 128px; margin: 0; font-size: 78px; line-height: 1.12; font-weight: 700; letter-spacing: -0.005em; }
+  .lead { position: absolute; left: 76px; top: 378px; margin: 0; font-size: 30px; color: #c4c2cc; }
+  .keys { position: absolute; left: 60px; top: 448px; width: 660px; }
+  .more { position: absolute; left: 76px; top: 762px; margin: 0; font-size: 24px; line-height: 1.45; color: #9c9aa4; }
+  .more b { color: #f6f8f7; font-weight: 600; }
+  .window { position: absolute; left: 929px; top: 155px; width: 440px; height: 589px; border-radius: 41px; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.08), 0 24px 60px rgba(0,0,0,.55); }
+  .window img { display: block; }
+</style>
+</head>
+<body>
+  <div class="brand">ArrowKeys</div>
+  <h1>Move the cursor<br>with Caps Lock.</h1>
+  <p class="lead">Hold Caps Lock or Option, then press a key.</p>
+  <img class="keys" src="../../docs/images/keycaps.png" alt="">
+  <p class="more"><b>U</b> and <b>O</b> jump to line ends, <b>H</b> and <b>;</b> move by words.</p>
+  <div class="window"><img src="setup-window.png" width="440" height="589" alt=""></div>
+</body>
+</html>

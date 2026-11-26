@@ -41,7 +41,7 @@ if ($LASTEXITCODE) { throw 'AutoHotkey source validation failed.' }
 $compileArgs = '/in "{0}" /out "{1}" /base "{2}" /icon "{3}" /compress 0 /silent verbose' -f $script,$executable,$runtime,(Join-Path $output 'ArrowKeys.ico')
 $compiled = Start-Process (Join-Path $compiler 'Ahk2Exe.exe') -ArgumentList $compileArgs -Wait -PassThru -WindowStyle Hidden
 if ($compiled.ExitCode -or !(Test-Path -LiteralPath $executable)) { throw 'ArrowKeys compilation failed.' }
-Copy-Item -LiteralPath (Join-Path $root 'keyboard.png'),(Join-Path $root 'LICENSE'),(Join-Path $root 'PRIVACY.md'),(Join-Path $PSScriptRoot 'AutoHotkey-source.url') -Destination $stage
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'store\keycaps.png'),(Join-Path $root 'LICENSE'),(Join-Path $root 'PRIVACY.md'),(Join-Path $PSScriptRoot 'AutoHotkey-source.url') -Destination $stage
 Copy-Item -LiteralPath (Join-Path $ahk 'license.txt') -Destination (Join-Path $stage 'AutoHotkey-license.txt')
 
 [xml]$xml = Get-Content -LiteralPath (Join-Path $source 'AppxManifest.xml') -Raw
