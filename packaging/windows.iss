@@ -60,6 +60,7 @@ begin
                  WizardForm.WelcomeLabel2.Width, WizardForm.WelcomeLabel2.Height);
   WizardForm.WelcomeLabel2.Visible := False;
   Info.Caption := 'ArrowKeys lets you move through text with Caps Lock and the letter keys.' + #13#10#13#10 +
+    'Website: <a href="https://nauroman.github.io/arrowkeys/">nauroman.github.io/arrowkeys</a>' + #13#10#13#10 +
     'You can <a href="https://github.com/nauroman/arrowkeys">review the source code on GitHub</a> or ' +
     '<a href="https://github.com/nauroman/arrowkeys/releases">download the installers and SHA-256 checksums</a> to verify your copy.';
   Info.AdjustHeight;
