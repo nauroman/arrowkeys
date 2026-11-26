@@ -30,7 +30,7 @@ bash packaging/build-mac-store.sh dist/mac-app-store/upload --archive
 open dist/mac-app-store/upload/ArrowKeys.xcarchive
 ```
 
-In Organizer, choose **Distribute App → App Store Connect** and select your team. The archive contains the sandboxed universal app and its privacy manifest. The product page screenshot is [included here](ArrowKeys-Mac-App-Store.png).
+In Organizer, choose **Distribute App → App Store Connect** and select your team. The archive contains the sandboxed universal app and its privacy manifest. The product page screenshot is [included here](ArrowKeys-Mac-App-Store.png). It is built from [screenshot.html](screenshot.html) with `python3 tools/demo/render-keycaps.py`.
 
 For a manually signed package, set `MAC_APP_SIGN_IDENTITY`, `MAC_INSTALLER_SIGN_IDENTITY` and `MAC_APP_STORE_PROFILE` to the distribution identities and matching Mac App Store provisioning profile.
 

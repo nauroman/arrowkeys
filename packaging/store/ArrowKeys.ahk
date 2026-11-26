@@ -41,7 +41,7 @@ ShowGuide(*) {
         window.AddText("w560", "Hold Caps Lock to move")
         window.SetFont("s11 Norm c303030")
         window.AddText("w560", "Release Caps Lock to type normally. Alt also works with these keys.")
-        window.AddPicture("w560 h-1", A_ScriptDir "\keyboard.png")
+        window.AddPicture("w300 h-1", A_ScriptDir "\keycaps.png")
         window.SetFont("s11 Bold")
         window.AddText("w560", "Move the cursor")
         window.SetFont("s11 Norm")
