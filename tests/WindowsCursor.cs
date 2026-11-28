@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -48,12 +49,13 @@ class WindowsCursor : Form
         keybd_event(key, 0, (up ? 2u : 0u) | (extended ? 1u : 0u), UIntPtr.Zero);
         await Task.Delay(45);
     }
-    async Task<int> Move(byte modifier, byte key)
+    // Hold the modifier for the whole gesture and tap the key the given number of times.
+    async Task<int> Move(byte modifier, byte key, int taps = 1)
     {
         box.SelectionStart = 27;
         box.SelectionLength = 0;
         if (modifier != 0) await Key(modifier, false);
-        await Key(key, false); await Key(key, true);
+        for (int tap = 0; tap < taps; tap++) { await Key(key, false); await Key(key, true); }
         if (modifier != 0) await Key(modifier, true);
         await Task.Delay(75);
         return box.SelectionStart;
@@ -80,19 +82,30 @@ class WindowsCursor : Form
         }
         byte[,] directions = {{74,37,0},{75,40,0},{76,39,0},{73,38,0},
                               {85,36,0},{79,35,0},{72,37,Ctrl},{186,39,Ctrl}};
+        var failures = new List<string>();
         for (int i = 0; i < directions.GetLength(0); i++) {
             byte key = directions[i,0];
-            int expected = await Move(directions[i,2], directions[i,1]);
-            if (expected == 27) throw new Exception("Native reference movement failed for VK " + key);
-            foreach (byte modifier in new byte[] {Caps,LeftAlt,RightAlt}) {
-                int actual = await Move(modifier, key);
-                if (actual != expected || box.Text != Sample)
-                    throw new Exception("VK " + modifier + "+" + key + " moved to " + actual + ", expected " + expected);
+            // One tap, then three taps while the modifier stays held, the way people move further.
+            foreach (int taps in new int[] {1, 3}) {
+                int expected = await Move(directions[i,2], directions[i,1], taps);
+                if (expected == 27) throw new Exception("Native reference movement failed for VK " + key);
+                foreach (byte modifier in new byte[] {Caps,LeftAlt,RightAlt}) {
+                    box.Text = Sample;
+                    int actual = await Move(modifier, key, taps);
+                    string result = "VK " + modifier + "+" + key + " x" + taps + " moved to " + actual + ", expected " + expected;
+                    if (actual != expected || box.Text != Sample)
+                        failures.Add(result + (box.Text != Sample ? ", text became \"" + box.Text.Replace("\r\n", "|") + "\"" : ""));
+                    box.Text = Sample;
+                }
             }
+        }
+        if (failures.Count > 0) {
+            foreach (string failure in failures) Trace(failure);
+            throw new Exception(failures.Count + " of 48 cursor movements failed");
         }
         await Move(0, 74);
         if (box.Text != Sample.Insert(27, "j") || (GetKeyState(Caps) & 1) != 0) throw new Exception("Ordinary typing failed after navigation");
-        Trace("All 24 cursor movements and ordinary typing passed");
+        Trace("All 48 cursor movements, single and repeated, and ordinary typing passed");
     }
     [STAThread] static int Main(string[] args)
     {

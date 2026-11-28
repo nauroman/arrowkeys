@@ -1,0 +1,49 @@
+# Temporary: find out why holding Caps Lock and tapping a key again types the letter.
+# Each scenario runs even when an earlier one fails, so one run shows the whole picture.
+name: Caps repeat diagnosis
+on:
+  push:
+    branches: [fix/caps-repeat]
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Build the standalone installer
+        shell: pwsh
+        run: |
+          if (!(Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+          [Environment]::OSVersion.VersionString
+          ./packaging/build-windows.ps1 -OutputDirectory dist
+      - name: Standalone edition alone
+        continue-on-error: true
+        shell: pwsh
+        run: ./tests/windows-install.ps1 -Setup (Resolve-Path dist/ArrowKeys-Windows-Setup.exe)
+      - name: Remove anything the standalone test left behind
+        if: always()
+        shell: pwsh
+        run: |
+          $uninstaller = Join-Path $env:LOCALAPPDATA 'Programs\ArrowKeys\unins000.exe'
+          if (Test-Path $uninstaller) { Start-Process $uninstaller -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Wait }
+          Get-Process ArrowKeys -ErrorAction SilentlyContinue | Stop-Process -Force
+      - name: Store edition alone
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          python -m pip install Pillow==12.2.0
+          ./packaging/build-store.ps1 -IdentityName ArrowKeys.CI -Publisher CN=ArrowKeys.CI -PublisherDisplayName ArrowKeys -Version 1.1.2.0
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./tests/windows-store.ps1
+      - name: Both editions at once
+        if: always()
+        continue-on-error: true
+        shell: pwsh
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./tests/windows-both.ps1 -Setup (Resolve-Path dist/ArrowKeys-Windows-Setup.exe)
