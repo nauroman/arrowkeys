@@ -16,6 +16,25 @@ else if !A_IsCompiled && FileExist(A_ScriptDir "\assets\ArrowKeys.ico")
 if !A_IsCompiled
     A_TrayMenu.Insert("E&xit", "About ArrowKeys", (*) => Run("https://nauroman.github.io/arrowkeys/"))
 
+; Only one copy may run. The Store and standalone editions, or an older version a Store update
+; left running, live in different folders, so #SingleInstance misses them. With two copies,
+; holding Caps Lock moves the cursor once and then types letters. The copy started last stays.
+CloseOtherCopies()
+
+CloseOtherCopies() {
+    hidden := DetectHiddenWindows(true)
+    for window in WinGetList("ahk_class AutoHotkey") {
+        try {
+            if window = A_ScriptHwnd || !(WinGetTitle(window) ~= "i)\\arrowkeys\.(ahk|exe)( - AutoHotkey.*)?$")
+                continue
+            copy := WinGetPID(window)
+            WinClose(window)
+            ProcessWaitClose(copy, 3)
+        }
+    }
+    DetectHiddenWindows(hidden)
+}
+
 ; Caps is an Alt modifier here; never leave the Caps Lock toggle enabled.
 SetCapsLockState "AlwaysOff"
 ; Another AHK process can bypass AlwaysOff with its own synthetic toggle.

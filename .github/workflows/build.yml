@@ -24,6 +24,9 @@ jobs:
           python -m pip install Pillow==12.2.0
           ./packaging/build-store.ps1 -IdentityName ArrowKeys.CI -Publisher CN=ArrowKeys.CI -PublisherDisplayName ArrowKeys -Version 1.1.2.0
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./tests/windows-store.ps1
+      - name: Start both editions and keep only the one started last
+        shell: pwsh
+        run: powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./tests/windows-both.ps1 -Setup (Resolve-Path dist/ArrowKeys-Windows-Setup.exe)
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: store-guide
